@@ -1,0 +1,49 @@
+[project]
+name = "digital-brain"
+version = "0.1.0"
+description = "A cognitive architecture for AI agents with persistent memory, inspired by Predictive Coding and Active Inference"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [
+    { name = "Matteo Gazzurelli", email = "matteo@gazzurelli.com" },
+]
+
+dependencies = [
+    "google-adk>=1.25",
+    "mem0ai>=0.1",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
+    "pydantic-settings>=2.0",
+    "apscheduler>=3.10,<4",
+    "qdrant-client>=1.9",
+    "litellm>=1.40",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+graph = ["neo4j>=5.0"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/digital_brain"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
