@@ -9,14 +9,14 @@ A cognitive architecture for AI agents with persistent memory, inspired by Predi
 docker compose up -d qdrant
 
 # 2. Install
-pip install -e ".[dev]"
+uv sync --extra dev
 
 # 3. Configure
 cp .env.example .env
 # Edit .env with your API keys
 
 # 4. Run
-uvicorn digital_brain.api.app:app --reload
+uv run uvicorn digital_brain.api.app:app --reload
 ```
 
 ## Architecture
