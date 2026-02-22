@@ -94,6 +94,27 @@ class APISettings(BaseSettings):
     port: int = 8000
 
 
+class TelegramSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="TELEGRAM_", extra="ignore")
+
+    enabled: bool = False
+    bot_token: str = ""
+    webhook_url: str = Field("", description="If empty, uses polling mode")
+    webhook_secret: str = ""
+    dm_policy: str = Field("pairing", description="open | pairing | disabled")
+    allow_from: list[str] = Field(default_factory=list)
+    debounce_ms: int = 1500
+
+
+class MediaSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MEDIA_", extra="ignore")
+
+    max_file_size_mb: int = 20
+    allowed_types: list[str] = Field(
+        default_factory=lambda: ["image/*", "audio/*", "video/*", "application/pdf"]
+    )
+
+
 class Settings(BaseSettings):
     """Root settings aggregating all sub-configurations."""
 
@@ -113,6 +134,8 @@ class Settings(BaseSettings):
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     rate_limit: RateLimitSettings = Field(default_factory=RateLimitSettings)
     api: APISettings = Field(default_factory=APISettings)
+    telegram: TelegramSettings = Field(default_factory=TelegramSettings)
+    media: MediaSettings = Field(default_factory=MediaSettings)
 
 
 _settings: Settings | None = None
