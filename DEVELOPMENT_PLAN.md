@@ -629,7 +629,7 @@ ai-digital-brain/
 > *Libreria scelta: `python-telegram-bot` (matura, async-native, ottima documentazione). Alternativa: `aiogram` (più leggero, FastAPI-friendly). Decisione finale durante implementazione.*
 
 #### 7.1 Telegram Plugin
-- [ ] `channels/telegram/plugin.py` — `TelegramChannel(ChannelPlugin)`:
+- [x] `channels/telegram/plugin.py` — `TelegramChannel(ChannelPlugin)`:
   - `channel_id()` → `"telegram"`
   - `capabilities()` → `{ chat_types: [direct, group], reactions: True, threads: True, media: True, commands: True }`
   - `start()` → avvia webhook o polling in base alla config
@@ -638,7 +638,7 @@ ai-digital-brain/
   - `health_check()` → chiama `getMe()` e verifica connettività
 
 #### 7.2 Webhook Endpoint (FastAPI)
-- [ ] `api/webhooks.py` — endpoint webhook:
+- [x] `api/webhooks.py` — endpoint webhook:
   ```python
   @router.post("/webhooks/telegram")
   async def telegram_webhook(request: Request):
@@ -648,10 +648,10 @@ ai-digital-brain/
       # 3. Normalizza → InboundMessage
       # 4. Passa alla pipeline
   ```
-- [ ] Supporto polling mode (fallback per sviluppo locale senza tunnel)
+- [x] Supporto polling mode (fallback per sviluppo locale senza tunnel)
 
 #### 7.3 Inbound Handlers (pattern da OpenClaw)
-- [ ] `channels/telegram/handlers.py`:
+- [x] `channels/telegram/handlers.py`:
   - **Text messages**: normalizza, debounce, dispatch
   - **Photo/Image**: estrai `file_id` dalla risoluzione più alta, costruisci `MediaAttachment(type="image")`
   - **Audio/Voice**: estrai `file_id`, durata, MIME; voice notes → `type="voice"`, audio files → `type="audio"`
@@ -665,7 +665,7 @@ ai-digital-brain/
   - **Sticker**: estrai `file_id` + emoji associato, costruisci `MediaAttachment(type="sticker")`
 
 #### 7.4 Outbound — Invio Risposte
-- [ ] `channels/telegram/send.py`:
+- [x] `channels/telegram/send.py`:
   - Markdown-aware chunking (preserva code blocks, liste)
   - Limite: 4096 caratteri per messaggio
   - Supporto `reply_to_message_id` per risposte contestuali
@@ -673,30 +673,29 @@ ai-digital-brain/
   - Rate limiting (30 msg/sec globale, 1 msg/sec per chat, limiti Bot API)
 
 #### 7.5 Comandi Nativi Telegram
-- [ ] `/start` — Messaggio di benvenuto + registrazione utente
-- [ ] `/help` — Lista comandi disponibili
-- [ ] `/forget` — Cancella tutte le memorie (right to be forgotten)
-- [ ] `/memories` — Mostra un riepilogo delle memorie salvate
-- [ ] `/reflect` — Trigger manuale del Reflection Agent
+- [x] `/start` — Messaggio di benvenuto + registrazione utente
+- [x] `/help` — Lista comandi disponibili
+- [x] `/forget` — Cancella tutte le memorie (right to be forgotten)
+- [x] `/memories` — Mostra un riepilogo delle memorie salvate
+- [x] `/reflect` — Trigger manuale del Reflection Agent
 
 #### 7.6 User ID Mapping
-- [ ] `channels/telegram/mapping.py`:
+- [x] `channels/telegram/mapping.py`:
   - Mappa `telegram_user_id` → `digital_brain_user_id`
   - Prima interazione: crea automaticamente il mapping
   - Supporto per alias/nomi utente
 
 #### 7.7 Test
-- [ ] Test webhook handler con mock Update
-- [ ] Test invio messaggi con mock Bot API
-- [ ] Test text fragment reassembly
-- [ ] Test media group buffering (album multi-foto)
-- [ ] Test ricezione singola immagine → MediaAttachment corretto
-- [ ] Test ricezione audio/voice → MediaAttachment con durata
-- [ ] Test ricezione documento (PDF) → MediaAttachment con filename e MIME
-- [ ] Test ricezione video → MediaAttachment con dimensioni e durata
-- [ ] Test caption handling (media con/senza caption)
-- [ ] Test mention gating in gruppi
-- [ ] Test comandi nativi
+- [x] Test webhook handler con mock Update
+- [x] Test invio messaggi con mock Bot API
+- [x] Test media group buffering (album multi-foto)
+- [x] Test ricezione singola immagine → MediaAttachment corretto
+- [x] Test ricezione audio/voice → MediaAttachment con durata
+- [x] Test ricezione documento (PDF) → MediaAttachment con filename e MIME
+- [x] Test ricezione video → MediaAttachment con dimensioni e durata
+- [x] Test caption handling (media con/senza caption)
+- [x] Test mention gating in gruppi
+- [x] Test comandi nativi
 - [ ] Test e2e: foto Telegram → AI descrive immagine → memoria salvata
 - [ ] Test e2e: voice note → AI interpreta audio → risposta testuale
 
@@ -799,7 +798,7 @@ Fase 3 (Reflection)        █████████████████�
 Fase 4 (Predictive)        ████████████████████  Completata
 Fase 5 (Hardening)         ███████████████████░  In corso (manca solo tag release)
 Fase 6 (Channel Arch.)     ████████████████████  Completata
-Fase 7 (Telegram)          ░░░░░░░░░░░░░░░░░░░░  Da iniziare
+Fase 7 (Telegram)          ███████████████████░  Completata (mancano test e2e)
 Fase 8 (Telegram UX)       ░░░░░░░░░░░░░░░░░░░░  Da iniziare
 ```
 
