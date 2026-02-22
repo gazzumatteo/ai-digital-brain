@@ -14,7 +14,7 @@ class LLMSettings(BaseSettings):
     )
 
     provider: str = "gemini"
-    model: str = Field("gemini-2.0-flash", alias="LLM_MODEL")
+    model: str = Field("gemini-3-flash-preview", alias="LLM_MODEL")
     ollama_base_url: str = Field("http://localhost:11434", validation_alias="OLLAMA_BASE_URL")
     google_api_key: str = Field("", validation_alias="GOOGLE_API_KEY")
     openai_api_key: str = Field("", validation_alias="OPENAI_API_KEY")

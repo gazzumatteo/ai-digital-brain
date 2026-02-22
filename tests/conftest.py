@@ -20,7 +20,7 @@ from digital_brain.memory.manager import MemoryManager
 def settings() -> Settings:
     """Return a Settings instance with test defaults."""
     return Settings(
-        llm=LLMSettings(provider="gemini", model="gemini-2.0-flash"),
+        llm=LLMSettings(provider="gemini", model="gemini-3-flash-preview"),
         embedder=EmbedderSettings(provider="ollama", model="nomic-embed-text:latest", dims=768),
         qdrant=QdrantSettings(host="localhost", port=6333, collection="test_memories"),
         neo4j=Neo4jSettings(enabled=False),
