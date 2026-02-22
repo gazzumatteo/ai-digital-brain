@@ -450,7 +450,7 @@ ai-digital-brain/
 > *Pattern ispirato a OpenClaw: `ChannelPlugin` interface — l'unica astrazione che conta. Ogni dettaglio specifico del canale (formato messaggi, API, autenticazione, formato target) è incapsulato dietro un contratto comune. L'AI layer non sa e non deve sapere se un messaggio viene da Telegram o WhatsApp.*
 
 #### 6.1 Channel Plugin Interface (ABC)
-- [ ] `channels/base.py` — Abstract Base Class `ChannelPlugin`:
+- [x] `channels/base.py` — Abstract Base Class `ChannelPlugin`:
   ```python
   from abc import ABC, abstractmethod
   from dataclasses import dataclass
@@ -517,7 +517,7 @@ ai-digital-brain/
   ```
 
 #### 6.2 Channel Registry
-- [ ] `channels/registry.py` — Registro dei canali attivi:
+- [x] `channels/registry.py` — Registro dei canali attivi:
   ```python
   class ChannelRegistry:
       def register(self, plugin: ChannelPlugin) -> None: ...
@@ -529,7 +529,7 @@ ai-digital-brain/
   ```
 
 #### 6.3 Inbound Pipeline (ispirata a OpenClaw)
-- [ ] `channels/pipeline.py` — Pipeline di elaborazione messaggi in arrivo:
+- [x] `channels/pipeline.py` — Pipeline di elaborazione messaggi in arrivo:
   1. **Normalize**: converti evento raw del canale → `InboundMessage` standard
   2. **Security check**: verifica pairing/allowlist
   3. **Debounce**: coalizza messaggi rapidi consecutivi dallo stesso utente
@@ -539,7 +539,7 @@ ai-digital-brain/
   7. **Send response**: risposta AI → canale di origine via `send_text()` o `send_media()`
 
 #### 6.3.1 Media Processing
-- [ ] `channels/media.py` — Gestione media nel pipeline:
+- [x] `channels/media.py` — Gestione media nel pipeline:
   ```python
   class MediaProcessor:
       """Scarica media dal canale e li converte in types.Part per Google ADK."""
@@ -557,16 +557,16 @@ ai-digital-brain/
       ) -> list[types.Part]:
           """Pipeline completa: download → validazione → conversione ADK Parts."""
   ```
-- [ ] Validazione: dimensione massima file (configurabile, default 20MB)
-- [ ] MIME type allowlist (evita eseguibili, archivi malevoli)
-- [ ] Tipi supportati dal LLM multimodale:
+- [x] Validazione: dimensione massima file (configurabile, default 20MB)
+- [x] MIME type allowlist (evita eseguibili, archivi malevoli)
+- [x] Tipi supportati dal LLM multimodale:
   - **Immagini**: `image/jpeg`, `image/png`, `image/webp`, `image/gif` → passate direttamente a Gemini
   - **Audio**: `audio/ogg`, `audio/mpeg`, `audio/wav` → passati a Gemini (supporto nativo)
   - **Video**: `video/mp4`, `video/webm` → passati a Gemini (supporto nativo)
   - **Documenti**: `application/pdf` → passato a Gemini; altri formati → estrazione testo se possibile
 
 #### 6.4 Inbound Debouncer (pattern da OpenClaw)
-- [ ] `channels/debounce.py` — Coalizza messaggi rapidi:
+- [x] `channels/debounce.py` — Coalizza messaggi rapidi:
   ```python
   class InboundDebouncer:
       """Previene 5 risposte AI per 5 messaggi consecutivi rapidi.
@@ -577,7 +577,7 @@ ai-digital-brain/
   ```
 
 #### 6.5 Security — DM Policy & Pairing (pattern da OpenClaw)
-- [ ] `channels/security.py` — Controllo accesso:
+- [x] `channels/security.py` — Controllo accesso:
   ```python
   class DmPolicyEnforcer:
       """Tre modalità: 'open' (tutti), 'pairing' (allowlist + approvazione), 'disabled'."""
@@ -586,12 +586,12 @@ ai-digital-brain/
   ```
 
 #### 6.6 Outbound Chunking
-- [ ] `channels/chunking.py` — Spezza risposte lunghe:
+- [x] `channels/chunking.py` — Spezza risposte lunghe:
   - Mode `markdown`: split preservando code blocks, liste, heading (Telegram, limite 4096 char)
   - Mode `text`: split greedy per lunghezza (per futuri canali senza supporto markdown)
 
 #### 6.7 Configurazione Canali
-- [ ] Estensione di `config.py` con sezione channels:
+- [x] Estensione di `config.py` con sezione channels:
   ```python
   # Telegram
   TELEGRAM_ENABLED: bool = False
@@ -610,13 +610,13 @@ ai-digital-brain/
   ```
 
 #### 6.8 Test
-- [ ] Test unitari per ChannelPlugin ABC
-- [ ] Test per InboundDebouncer
-- [ ] Test per DmPolicyEnforcer
-- [ ] Test per text/markdown chunking
-- [ ] Test per ChannelRegistry lifecycle
-- [ ] Test per MediaProcessor (download, validazione MIME, conversione ADK Part)
-- [ ] Test per rifiuto file troppo grandi / MIME type non permessi
+- [x] Test unitari per ChannelPlugin ABC
+- [x] Test per InboundDebouncer
+- [x] Test per DmPolicyEnforcer
+- [x] Test per text/markdown chunking
+- [x] Test per ChannelRegistry lifecycle
+- [x] Test per MediaProcessor (download, validazione MIME, conversione ADK Part)
+- [x] Test per rifiuto file troppo grandi / MIME type non permessi
 
 **Deliverable**: Infrastruttura multi-canale completa e testata, con supporto media multimodale. Nessun canale concreto ancora, ma il framework è pronto per accoglierli.
 
@@ -798,7 +798,7 @@ Fase 2 (Conversation)      █████████████████�
 Fase 3 (Reflection)        ████████████████████  Completata
 Fase 4 (Predictive)        ████████████████████  Completata
 Fase 5 (Hardening)         ███████████████████░  In corso (manca solo tag release)
-Fase 6 (Channel Arch.)     ░░░░░░░░░░░░░░░░░░░░  Da iniziare
+Fase 6 (Channel Arch.)     ████████████████████  Completata
 Fase 7 (Telegram)          ░░░░░░░░░░░░░░░░░░░░  Da iniziare
 Fase 8 (Telegram UX)       ░░░░░░░░░░░░░░░░░░░░  Da iniziare
 ```
