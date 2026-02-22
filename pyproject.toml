@@ -19,6 +19,7 @@ dependencies = [
     "qdrant-client>=1.9",
     "litellm>=1.40",
     "python-dotenv>=1.0",
+    "python-telegram-bot>=21.0",
 ]
 
 [project.optional-dependencies]
