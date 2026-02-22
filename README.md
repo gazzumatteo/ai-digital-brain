@@ -4,54 +4,120 @@ A cognitive architecture for AI agents with persistent memory, inspired by **Pre
 
 Built on [Google ADK](https://google.github.io/adk-docs/) + [Mem0](https://github.com/mem0ai/mem0), the Digital Brain gives LLM agents the ability to remember, consolidate, and anticipate — mimicking the human memory lifecycle.
 
+Communicate with your Digital Brain via **Telegram** (text, images, audio, video, documents) or the **REST API**.
+
 ## Quick Start
 
+### Requisiti
+
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (package manager)
+- Docker e Docker Compose
+- Una chiave API Google (per Gemini) **oppure** Ollama installato in locale
+
+### Installazione
+
 ```bash
-# 1. Start infrastructure
+# 1. Clona il repository
+git clone https://github.com/gazzumatteo/ai-digital-brain.git
+cd ai-digital-brain
+
+# 2. Avvia l'infrastruttura (Qdrant vector store)
 docker compose up -d qdrant
 
-# 2. Install dependencies
+# 3. Installa le dipendenze
 uv sync --extra dev
 
-# 3. Configure
+# 4. Configura le variabili d'ambiente
 cp .env.example .env
-# Edit .env with your API keys
+# Modifica .env con le tue API key (vedi sezione Configurazione)
 
-# 4. Run
+# 5. Avvia il server
 uv run uvicorn digital_brain.api.app:app --reload
 ```
 
-The API is available at `http://localhost:8000`. Check health at `GET /health`.
+L'API e disponibile su `http://localhost:8000`. Verifica lo stato con `GET /health`.
 
-## Architecture
+### Setup con Telegram Bot
+
+Per usare il Digital Brain via Telegram:
+
+```bash
+# 1. Crea un bot su Telegram parlando con @BotFather
+#    - Invia /newbot e segui le istruzioni
+#    - Copia il token del bot
+
+# 2. Aggiungi le variabili nel tuo .env
+TELEGRAM_ENABLED=true
+TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234...
+TELEGRAM_DM_POLICY=open
+
+# 3. Avvia il server (il bot si avvia in polling mode)
+uv run uvicorn digital_brain.api.app:app --reload
+```
+
+Il bot risponde ai messaggi privati e, nei gruppi, solo quando viene menzionato con `@nomebot`.
+
+#### Comandi Telegram
+
+| Comando | Descrizione |
+|---------|-------------|
+| `/start` | Messaggio di benvenuto |
+| `/help` | Lista comandi disponibili |
+| `/memories` | Mostra le tue memorie salvate |
+| `/forget` | Cancella tutte le tue memorie |
+| `/reflect` | Avvia la riflessione sulle memorie |
+
+#### Media supportati
+
+Il bot elabora tutti i tipi di media grazie al modello multimodale (Gemini):
+
+- **Immagini** (JPEG, PNG, WebP, GIF)
+- **Audio e note vocali** (OGG, MP3, WAV)
+- **Video e video note** (MP4, WebM)
+- **Documenti** (PDF)
+
+I media vengono scaricati, convertiti in `types.Part` di Google ADK e passati direttamente a Gemini. La descrizione generata dall'AI viene salvata come memoria testuale.
+
+## Architettura
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       DIGITAL BRAIN                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │               GOOGLE ADK AGENT LAYER                  │  │
-│  │                                                       │  │
-│  │  ┌──────────────┐  ┌─────────────┐  ┌─────────────┐  │  │
-│  │  │ Conversation │  │ Reflection  │  │ Predictive  │  │  │
-│  │  │    Agent     │  │   Agent     │  │   Agent     │  │  │
-│  │  └──────┬───────┘  └──────┬──────┘  └──────┬──────┘  │  │
-│  └─────────┼─────────────────┼─────────────────┼─────────┘  │
-│            │                 │                 │            │
-│  ┌─────────▼─────────────────▼─────────────────▼─────────┐  │
-│  │                    MEMORY LAYER (Mem0)                 │  │
-│  │   ┌──────────┐   ┌──────────┐   ┌──────────────┐     │  │
-│  │   │  Vector  │   │  Graph   │   │  Key-Value   │     │  │
-│  │   │ (Qdrant) │   │ (Neo4j)  │   │   (Redis)    │     │  │
-│  │   └──────────┘   └──────────┘   └──────────────┘     │  │
-│  └───────────────────────────────────────────────────────┘  │
-│                          │                                  │
-│  ┌───────────────────────▼───────────────────────────────┐  │
-│  │                    LLM LAYER                          │  │
-│  │         (Gemini / Ollama / OpenAI)                    │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       DIGITAL BRAIN                          │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │                  CHANNEL LAYER                         │  │
+│  │                                                        │  │
+│  │  ┌──────────┐     ┌─────────────────────────────────┐  │  │
+│  │  │ Telegram │     │  Inbound Pipeline               │  │  │
+│  │  │   Bot    │────▶│  security → debounce → media    │  │  │
+│  │  │   API    │     │  → dispatch → chunked response  │  │  │
+│  │  └──────────┘     └──────────────┬──────────────────┘  │  │
+│  └──────────────────────────────────┼─────────────────────┘  │
+│                                     │                        │
+│  ┌──────────────────────────────────▼─────────────────────┐  │
+│  │               GOOGLE ADK AGENT LAYER                   │  │
+│  │                                                        │  │
+│  │  ┌──────────────┐  ┌─────────────┐  ┌──────────────┐  │  │
+│  │  │ Conversation │  │ Reflection  │  │  Predictive  │  │  │
+│  │  │    Agent     │  │   Agent     │  │    Agent     │  │  │
+│  │  └──────┬───────┘  └──────┬──────┘  └──────┬───────┘  │  │
+│  └─────────┼─────────────────┼─────────────────┼──────────┘  │
+│            │                 │                 │             │
+│  ┌─────────▼─────────────────▼─────────────────▼──────────┐  │
+│  │                   MEMORY LAYER (Mem0)                   │  │
+│  │   ┌──────────┐   ┌──────────┐   ┌──────────────┐      │  │
+│  │   │  Vector  │   │  Graph   │   │  Key-Value   │      │  │
+│  │   │ (Qdrant) │   │ (Neo4j)  │   │   (Redis)    │      │  │
+│  │   └──────────┘   └──────────┘   └──────────────┘      │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                          │                                   │
+│  ┌───────────────────────▼────────────────────────────────┐  │
+│  │                    LLM LAYER                           │  │
+│  │          (Gemini / Ollama / OpenAI)                    │  │
+│  └────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ### Three Agents, One Brain
@@ -71,6 +137,7 @@ The API is available at `http://localhost:8000`. Check health at `GET /health`.
 | `POST` | `/reflect/{user_id}` | Trigger memory consolidation |
 | `DELETE` | `/memories/{memory_id}` | Delete a single memory |
 | `DELETE` | `/memories/user/{user_id}` | Delete all user memories (GDPR) |
+| `POST` | `/webhooks/telegram` | Webhook per Telegram Bot API |
 | `GET` | `/health` | Health check with component status and metrics |
 
 ### `POST /chat`
@@ -158,6 +225,34 @@ All settings are controlled via environment variables (or `.env` file). See `.en
 | `MAX_PRELOAD_TOKENS` | `2000` | Token budget for pre-loaded context |
 | `MEMORY_TTL_DAYS` | `0` | Auto-expire memories (0 = disabled) |
 
+### Telegram
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TELEGRAM_ENABLED` | `false` | Abilita il bot Telegram |
+| `TELEGRAM_BOT_TOKEN` | — | Token del bot da @BotFather |
+| `TELEGRAM_WEBHOOK_URL` | — | URL webhook (se vuoto, usa polling) |
+| `TELEGRAM_WEBHOOK_SECRET` | — | Secret per verificare le richieste webhook |
+| `TELEGRAM_DM_POLICY` | `pairing` | Policy accesso: `open`, `pairing`, `disabled` |
+| `TELEGRAM_ALLOW_FROM` | `[]` | Lista Telegram user ID pre-autorizzati |
+| `TELEGRAM_DEBOUNCE_MS` | `1500` | Millisecondi di attesa per coalizzare messaggi rapidi |
+
+**DM Policy:**
+- `open` — Tutti possono interagire con il bot
+- `pairing` — Solo gli utenti nella allowlist (utile per uso personale)
+- `disabled` — DM completamente disabilitati
+
+**Modalita di ricezione:**
+- **Polling** (default): il bot interroga periodicamente i server Telegram. Ideale per sviluppo locale, non richiede un URL pubblico.
+- **Webhook**: Telegram invia gli aggiornamenti a un URL pubblico. Richiede HTTPS e un dominio raggiungibile. Imposta `TELEGRAM_WEBHOOK_URL` e opzionalmente `TELEGRAM_WEBHOOK_SECRET`.
+
+### Media
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MEDIA_MAX_FILE_SIZE_MB` | `20` | Dimensione massima file accettato (MB) |
+| `MEDIA_ALLOWED_TYPES` | `image/*, audio/*, video/*, application/pdf` | MIME types permessi (supporta wildcard) |
+
 ### Observability
 
 | Variable | Default | Description |
@@ -170,26 +265,44 @@ All settings are controlled via environment variables (or `.env` file). See `.en
 ## Docker
 
 ```bash
-# Full stack (Qdrant + app)
+# Stack completo (Qdrant + app)
 docker compose up -d
 
-# With Neo4j graph store
+# Con Neo4j graph store
 docker compose --profile graph up -d
 
-# With local Ollama LLM
+# Con Ollama LLM locale
 docker compose --profile local up -d
 ```
 
-## Development
+Per abilitare Telegram in Docker, aggiungi le variabili nel file `.env`:
 
 ```bash
-# Install dev dependencies
+TELEGRAM_ENABLED=true
+TELEGRAM_BOT_TOKEN=il-tuo-token
+TELEGRAM_DM_POLICY=open
+```
+
+In modalita webhook (produzione), imposta anche:
+
+```bash
+TELEGRAM_WEBHOOK_URL=https://tuodominio.com/webhooks/telegram
+TELEGRAM_WEBHOOK_SECRET=un-secret-casuale
+```
+
+## Sviluppo
+
+```bash
+# Installa le dipendenze di sviluppo
 uv sync --extra dev
 
-# Run tests
+# Avvia il server in modalita sviluppo
+uv run uvicorn digital_brain.api.app:app --reload
+
+# Esegui i test
 uv run pytest tests/ -v
 
-# Run tests with coverage
+# Esegui i test con coverage
 uv run pytest tests/ --cov=digital_brain --cov-report=term-missing
 
 # Lint
@@ -216,6 +329,7 @@ uv run python scripts/run_reflection.py
 | Vector Store | Qdrant |
 | Graph Store | Neo4j (optional) |
 | LLM | Gemini / Ollama / OpenAI |
+| Messaging | Telegram Bot API (python-telegram-bot) |
 | API | FastAPI + Uvicorn |
 | Scheduling | APScheduler |
 | Infrastructure | Docker Compose |
