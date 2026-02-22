@@ -26,14 +26,14 @@ Implementazione di un **Digital Brain** basato sui principi di Predictive Coding
 │                                                              │
 │   ┌────────────────────────────────────────────────────┐     │
 │   │               CHANNEL LAYER                        │     │
-│   │         (Telegram, WhatsApp, ...)                  │     │
+│   │            (Telegram, Future...)                   │     │
 │   │                                                    │     │
-│   │  ┌──────────┐  ┌──────────┐  ┌──────────────┐     │     │
-│   │  │ Telegram │  │ WhatsApp │  │  Future ...  │     │     │
-│   │  │   Bot    │  │Cloud API │  │  (Discord,   │     │     │
-│   │  │   API    │  │  (Meta)  │  │   Slack...)  │     │     │
-│   │  └────┬─────┘  └────┬─────┘  └──────┬───────┘     │     │
-│   │       └──────────────┼───────────────┘             │     │
+│   │  ┌──────────┐  ┌──────────────┐                    │     │
+│   │  │ Telegram │  │  Future ...  │                    │     │
+│   │  │   Bot    │  │  (Discord,   │                    │     │
+│   │  │   API    │  │   Slack...)  │                    │     │
+│   │  └────┬─────┘  └──────┬───────┘                    │     │
+│   │       └───────────────┘                            │     │
 │   │                      │                             │     │
 │   │         ┌────────────▼────────────┐                │     │
 │   │         │   Inbound Pipeline      │                │     │
@@ -108,19 +108,12 @@ ai-digital-brain/
 │       │   ├── chunking.py         # Text/markdown chunking per risposte lunghe
 │       │   ├── security.py         # DM policy, pairing, allowlist
 │       │   │
-│       │   ├── telegram/           # Telegram Bot API integration (Fase 7)
-│       │   │   ├── __init__.py
-│       │   │   ├── plugin.py       # TelegramChannel(ChannelPlugin)
-│       │   │   ├── handlers.py     # Inbound: text, media, commands, groups
-│       │   │   ├── send.py         # Outbound: invio messaggi/media
-│       │   │   └── mapping.py      # Telegram user_id → brain user_id
-│       │   │
-│       │   └── whatsapp/           # WhatsApp Cloud API integration (Fase 8)
+│       │   └── telegram/           # Telegram Bot API integration (Fase 7)
 │       │       ├── __init__.py
-│       │       ├── plugin.py       # WhatsAppChannel(ChannelPlugin)
-│       │       ├── client.py       # WhatsApp Cloud API HTTP client
-│       │       ├── handlers.py     # Inbound: parsing webhook payload
-│       │       └── send.py         # Outbound: invio messaggi/media/template
+│       │       ├── plugin.py       # TelegramChannel(ChannelPlugin)
+│       │       ├── handlers.py     # Inbound: text, media, commands, groups
+│       │       ├── send.py         # Outbound: invio messaggi/media
+│       │       └── mapping.py      # Telegram user_id → brain user_id
 │       │
 │       ├── tools/                  # ADK Tools custom
 │       │   ├── __init__.py
@@ -135,7 +128,7 @@ ai-digital-brain/
 │           ├── __init__.py
 │           ├── app.py              # FastAPI app (o ADK dev server wrapper)
 │           ├── routes.py           # Endpoints: /chat, /memories, /reflect
-│           └── webhooks.py         # Webhook endpoints: /webhooks/telegram, /webhooks/whatsapp
+│           └── webhooks.py         # Webhook endpoint: /webhooks/telegram
 │
 ├── tests/
 │   ├── __init__.py
@@ -451,7 +444,7 @@ ai-digital-brain/
 
 ### Fase 6 — Channel Architecture (Infrastruttura Multi-Canale)
 
-**Obiettivo**: Creare l'astrazione che permette al Digital Brain di comunicare su qualsiasi canale (Telegram, WhatsApp, e futuri) tramite un'interfaccia unificata.
+**Obiettivo**: Creare l'astrazione che permette al Digital Brain di comunicare su qualsiasi canale (Telegram e futuri) tramite un'interfaccia unificata.
 
 > *Pattern ispirato a OpenClaw: `ChannelPlugin` interface — l'unica astrazione che conta. Ogni dettaglio specifico del canale (formato messaggi, API, autenticazione, formato target) è incapsulato dietro un contratto comune. L'AI layer non sa e non deve sapere se un messaggio viene da Telegram o WhatsApp.*
 
@@ -465,7 +458,7 @@ ai-digital-brain/
 
   @dataclass
   class InboundMessage:
-      channel: str            # "telegram" | "whatsapp"
+      channel: str            # "telegram" | future channels
       chat_id: str            # ID univoco della chat
       sender_id: str          # ID del mittente
       sender_name: str        # Nome visualizzato
@@ -553,10 +546,10 @@ ai-digital-brain/
 
 #### 6.6 Outbound Chunking
 - [ ] `channels/chunking.py` — Spezza risposte lunghe:
-  - Mode `text`: split greedy per lunghezza (WhatsApp, limite ~4000 char)
   - Mode `markdown`: split preservando code blocks, liste, heading (Telegram, limite 4096 char)
+  - Mode `text`: split greedy per lunghezza (per futuri canali senza supporto markdown)
 
-#### 6.7 Configurazione Multi-Canale
+#### 6.7 Configurazione Canali
 - [ ] Estensione di `config.py` con sezione channels:
   ```python
   # Telegram
@@ -567,15 +560,6 @@ ai-digital-brain/
   TELEGRAM_DM_POLICY: str = "pairing"  # open | pairing | disabled
   TELEGRAM_ALLOW_FROM: list[str] = []
   TELEGRAM_DEBOUNCE_MS: int = 1500
-
-  # WhatsApp
-  WHATSAPP_ENABLED: bool = False
-  WHATSAPP_PHONE_NUMBER_ID: str = ""
-  WHATSAPP_ACCESS_TOKEN: str = ""
-  WHATSAPP_VERIFY_TOKEN: str = ""
-  WHATSAPP_WEBHOOK_SECRET: str = ""
-  WHATSAPP_DM_POLICY: str = "pairing"
-  WHATSAPP_ALLOW_FROM: list[str] = []
   ```
 
 #### 6.8 Test
@@ -659,124 +643,39 @@ ai-digital-brain/
 
 ---
 
-### Fase 8 — Integrazione WhatsApp (Cloud API)
+### Fase 8 — Hardening & UX Telegram
 
-**Obiettivo**: Il Digital Brain risponde su WhatsApp via API ufficiale.
+**Obiettivo**: Monitoring, UX ottimizzata e proactive outreach su Telegram.
 
-> *A differenza di OpenClaw che usa WhatsApp Web (non ufficiale, fragile, rischio ban), usiamo la **WhatsApp Business Cloud API** ufficiale di Meta. Richiede un account Business e una app Meta, ma è stabile, supportata, e ha webhook HTTP nativi.*
-
-#### 8.1 Setup WhatsApp Business
-- [ ] Documentazione: come creare una Meta App + WhatsApp Business Account
-- [ ] Configurazione variabili d'ambiente:
-  - `WHATSAPP_PHONE_NUMBER_ID` — ID del numero di telefono
-  - `WHATSAPP_ACCESS_TOKEN` — Token permanente o refresh token
-  - `WHATSAPP_VERIFY_TOKEN` — Token per verifica webhook
-  - `WHATSAPP_APP_SECRET` — Per validazione firma webhook
-
-#### 8.2 WhatsApp Plugin
-- [ ] `channels/whatsapp/plugin.py` — `WhatsAppChannel(ChannelPlugin)`:
-  - `channel_id()` → `"whatsapp"`
-  - `capabilities()` → `{ chat_types: [direct, group], reactions: True, media: True }`
-  - `start()` → registra webhook con Meta (o verifica che sia già registrato)
-  - `send_text()` → POST a `graph.facebook.com/v21.0/{phone_number_id}/messages`
-  - `send_media()` → invio media via Cloud API (upload o URL)
-  - `health_check()` → verifica token e status del numero
-
-#### 8.3 Webhook Endpoint
-- [ ] `api/webhooks.py` — aggiunta endpoint WhatsApp:
-  ```python
-  @router.get("/webhooks/whatsapp")
-  async def whatsapp_verify(request: Request):
-      """Webhook verification challenge (GET con hub.verify_token)."""
-
-  @router.post("/webhooks/whatsapp")
-  async def whatsapp_webhook(request: Request):
-      """Riceve notifiche da WhatsApp Cloud API."""
-      # 1. Valida firma HMAC-SHA256 (X-Hub-Signature-256)
-      # 2. Parsa payload (messages, statuses, errors)
-      # 3. Normalizza → InboundMessage
-      # 4. Passa alla pipeline
-  ```
-
-#### 8.4 WhatsApp Cloud API Client
-- [ ] `channels/whatsapp/client.py`:
-  - Invio messaggi testo
-  - Invio media (immagini, documenti, audio)
-  - Invio template messages (richiesti da Meta per first-contact)
-  - Mark as read (receipts)
-  - Gestione errori e retry con backoff
-  - Rate limiting (limiti Business API: 80 msg/sec tier 1)
-
-#### 8.5 Inbound Message Handling
-- [ ] `channels/whatsapp/handlers.py`:
-  - Parsing payload webhook (struttura nested con `entry[].changes[].value.messages[]`)
-  - Tipi supportati: `text`, `image`, `document`, `audio`, `video`, `location`, `contacts`, `interactive`
-  - Download media: `GET graph.facebook.com/v21.0/{media_id}` → URL temporaneo
-  - Gestione stati: `sent`, `delivered`, `read`, `failed`
-
-#### 8.6 Template Messages
-- [ ] Gestione messaggio iniziale: WhatsApp richiede un template message per il primo contatto
-- [ ] Dopo che l'utente risponde → finestra di 24h per messaggi liberi
-- [ ] Notifica proattiva: il Digital Brain può iniziare conversazioni via template
-
-#### 8.7 Test
-- [ ] Test webhook verification (GET challenge)
-- [ ] Test webhook signature validation (HMAC-SHA256)
-- [ ] Test parsing payload inbound
-- [ ] Test invio messaggi via Cloud API (mock HTTP)
-- [ ] Test media download
-- [ ] Test e2e: messaggio WhatsApp → risposta con memoria
-
-**Deliverable**: WhatsApp funzionante via Cloud API. L'utente scrive su WhatsApp → il Digital Brain risponde con contesto memorizzato.
-
----
-
-### Fase 9 — Multi-Channel Hardening & UX
-
-**Obiettivo**: Esperienza unificata cross-canale, monitoring, e UX ottimizzata per chat messaging.
-
-#### 9.1 Identità Cross-Canale
-- [ ] Un utente può essere lo stesso su Telegram e WhatsApp:
-  - `user_identity` table: mappa `(channel, channel_user_id)` → `brain_user_id`
-  - Linking manuale: "Scrivi il tuo codice di collegamento su Telegram"
-  - Le memorie sono condivise: scrivo su Telegram, ricordo su WhatsApp
-- [ ] Gestione conflitti: stesso utente manda messaggi contemporanei su 2 canali
-
-#### 9.2 Session Management Cross-Canale
-- [ ] Session key format: `{brain_user_id}:{channel}:{chat_id}`
-- [ ] Contesto condiviso: le memorie sono per `brain_user_id`, non per canale
-- [ ] Stato conversazione isolato per canale (non mischiare thread Telegram con WhatsApp)
-
-#### 9.3 Monitoring & Observabilità
-- [ ] Metriche per canale:
+#### 8.1 Monitoring & Osservabilità
+- [ ] Metriche Telegram:
   - `telegram_messages_in`, `telegram_messages_out`
-  - `whatsapp_messages_in`, `whatsapp_messages_out`
-  - `channel_latency_ms` per canale
-  - `channel_errors` per canale
-- [ ] Health check esteso: `/health` include stato di ogni canale
-- [ ] Dashboard status: endpoint JSON con stato real-time di tutti i canali
+  - `telegram_latency_ms`
+  - `telegram_errors`
+- [ ] Health check esteso: `/health` include stato del canale Telegram
+- [ ] Dashboard status: endpoint JSON con stato real-time del bot
 
-#### 9.4 UX Ottimizzazioni per Chat
-- [ ] **Typing indicator**: mostra "sta scrivendo..." su Telegram/WhatsApp mentre l'AI genera
-- [ ] **Risposte progressive**: su Telegram, edit-in-place del messaggio durante lo streaming LLM
+#### 8.2 UX Ottimizzazioni per Telegram
+- [ ] **Typing indicator**: mostra "sta scrivendo..." mentre l'AI genera (`sendChatAction`)
+- [ ] **Risposte progressive**: edit-in-place del messaggio durante lo streaming LLM
 - [ ] **Risposte contestuali**: reply-to sul messaggio originale dell'utente
-- [ ] **Formattazione adattiva**: markdown ricco su Telegram, testo semplice su WhatsApp
+- [ ] **Formattazione markdown**: sfruttare al massimo il supporto markdown di Telegram
 - [ ] **Gestione errori graceful**: se l'AI fallisce, invia messaggio di scusa all'utente
 
-#### 9.5 Proactive Outreach (Digital Brain → Utente)
+#### 8.3 Proactive Outreach (Digital Brain → Utente)
 - [ ] Il Predictive Agent può decidere di contattare proattivamente l'utente:
   - "Buongiorno! Oggi hai la riunione di progetto alle 10"
   - "Ho notato che non facciamo il punto sulla dieta da 3 giorni"
 - [ ] Rispetta finestre temporali (non disturbare di notte)
-- [ ] Rispetta limiti WhatsApp (template messages per outreach)
+- [ ] Canale preferito configurabile (per ora solo Telegram)
 
-#### 9.6 Test e2e Cross-Canale
-- [ ] Test: stesso utente linkato su Telegram e WhatsApp
-- [ ] Test: memoria salvata via Telegram → recuperata via WhatsApp
+#### 8.4 Test
 - [ ] Test: typing indicator funzionante
-- [ ] Test: risposte progressive su Telegram
+- [ ] Test: risposte progressive (edit-in-place)
+- [ ] Test: proactive outreach con mock scheduler
+- [ ] Test e2e: messaggio Telegram → risposta con memoria → metriche aggiornate
 
-**Deliverable**: Esperienza multi-canale fluida. L'utente parla col suo Digital Brain ovunque — Telegram, WhatsApp — con identità e memoria unificate.
+**Deliverable**: Bot Telegram con UX ottimizzata, monitoring completo e capacità proattive.
 
 ---
 
@@ -794,7 +693,6 @@ ai-digital-brain/
 | `neo4j` | latest | Graph store client (opzionale) |
 | `litellm` | latest | Proxy LLM multi-provider (opzionale) |
 | `python-telegram-bot` | ^21.0 | Telegram Bot API (Fase 7) |
-| `httpx` | ^0.27 | HTTP client async per WhatsApp Cloud API (Fase 8) |
 | `pytest` | ^8.0 | Testing |
 | `pytest-asyncio` | latest | Test async |
 
@@ -841,8 +739,7 @@ Fase 4 (Predictive)        █████████████████�
 Fase 5 (Hardening)         ███████████████████░  In corso (manca solo tag release)
 Fase 6 (Channel Arch.)     ░░░░░░░░░░░░░░░░░░░░  Da iniziare
 Fase 7 (Telegram)          ░░░░░░░░░░░░░░░░░░░░  Da iniziare
-Fase 8 (WhatsApp)          ░░░░░░░░░░░░░░░░░░░░  Da iniziare
-Fase 9 (Multi-Ch. UX)      ░░░░░░░░░░░░░░░░░░░░  Da iniziare
+Fase 8 (Telegram UX)       ░░░░░░░░░░░░░░░░░░░░  Da iniziare
 ```
 
 Ogni fase produce un **deliverable testabile** indipendentemente dalle successive.
@@ -864,29 +761,30 @@ Ogni fase produce un **deliverable testabile** indipendentemente dalle successiv
 4. **Async by default**: tutte le operazioni I/O sono async
 5. **Test-driven**: ogni fase include test prima del deliverable
 
-### Perché Telegram + WhatsApp (e non una CLI)
+### Perché Telegram (e non una CLI)
 - Il Digital Brain deve essere **raggiungibile dove l'utente già comunica**
-- Telegram e WhatsApp coprono il 95%+ delle comunicazioni quotidiane
-- L'interfaccia conversazionale è **nativa** su queste piattaforme — nessun onboarding
-- Il pattern `ChannelPlugin` (ispirato a OpenClaw) rende banale aggiungere futuri canali (Discord, Slack, email...)
+- Telegram ha un'API Bot ufficiale eccellente, gratuita, senza requisiti business
+- L'interfaccia conversazionale è **nativa** su Telegram — nessun onboarding
+- Il pattern `ChannelPlugin` (ispirato a OpenClaw) rende possibile aggiungere futuri canali (Discord, Slack, WhatsApp...) senza toccare il core
 
 ### Decisioni chiave per i canali
-1. **WhatsApp: Cloud API ufficiale, NON WhatsApp Web**
-   - OpenClaw usa WhatsApp Web (Baileys) — approccio non ufficiale, fragile, rischio ban account
-   - Noi usiamo la **WhatsApp Business Cloud API** di Meta: stabile, supportata, webhook HTTP nativi
-   - Trade-off: richiede un account Business Meta, ma è l'unico approccio production-ready
-2. **Telegram: `python-telegram-bot` (non grammY)**
+1. **Telegram come canale primario**
+   - API Bot ufficiale, gratuita, senza prerequisiti commerciali
+   - Supporta: markdown, inline keyboards, comandi nativi, gruppi, forum topics, media
+   - Webhook e polling mode entrambi supportati
+   - WhatsApp rimandato: richiede account Business Meta, configurazione complessa, e la Cloud API ha limitazioni (template messages, finestre 24h)
+2. **`python-telegram-bot` (non grammY)**
    - OpenClaw usa grammY (TypeScript). Equivalente Python: `python-telegram-bot` (PTB)
    - PTB è la libreria più matura, async-native, con ottima documentazione
    - Alternativa valutata: `aiogram` (più leggero, più FastAPI-friendly) — decisione finale durante Fase 7
 3. **Channel Plugin come ABC, non come PluginRuntime**
    - OpenClaw usa dependency injection via singleton runtime — pattern Node/TypeScript
    - In Python usiamo ABC + dependency injection via FastAPI — più idiomatico e testabile
-4. **Debouncing, media buffering, text fragment reassembly: copiati da OpenClaw**
+4. **Debouncing, media buffering, text fragment reassembly: pattern da OpenClaw**
    - Pattern essenziali per UX reale su chat — senza debouncing, 5 messaggi rapidi → 5 risposte AI separate
    - Riscrittura in Python asyncio, ma logica identica
 
 ---
 
 *Piano creato per il progetto Digital Brain — basato sulla serie "From Predictive Coding to Digital Brain" di Matteo Gazzurelli*
-*Fasi 6-9 ispirate all'analisi del repository OpenClaw (https://github.com/openclaw/openclaw)*
+*Fasi 6-8 ispirate all'analisi del repository OpenClaw (https://github.com/openclaw/openclaw)*
