@@ -353,37 +353,55 @@ ai-digital-brain/
 **Obiettivo**: Sistema robusto, documentato e pronto per il rilascio open-source.
 
 #### 5.1 Privacy e Sicurezza
-- [ ] Endpoint `DELETE /memories/user/{user_id}` — "right to be forgotten" completo
-- [ ] Scoping rigoroso: nessun leak di memorie tra utenti diversi
-- [ ] Nessun log di contenuti sensibili (sanitizzare prima del logging)
-- [ ] Rate limiting sugli endpoint API
+- [x] Endpoint `DELETE /memories/user/{user_id}` — "right to be forgotten" completo
+- [x] Scoping rigoroso: nessun leak di memorie tra utenti diversi
+  - Validazione `user_id` con regex (alfanumerico, 1-128 char)
+  - Rifiuto di path-traversal, injection e caratteri speciali
+  - Validazione a livello di Pydantic model e route
+- [x] Nessun log di contenuti sensibili (sanitizzare prima del logging)
+  - Modulo `logging_config.py` con pattern matching per API key (Google, OpenAI, GitHub), password, token
+  - Sanitizzazione automatica su JSONFormatter e SanitizedTextFormatter
+- [x] Rate limiting sugli endpoint API
+  - `RateLimitMiddleware` con sliding window per IP
+  - Configurabile via `RATE_LIMIT_ENABLED` e `RATE_LIMIT_REQUESTS_PER_MINUTE`
 
 #### 5.2 Osservabilità
-- [ ] Logging strutturato (JSON) con correlation ID per sessione
-- [ ] Metriche:
-  - Memorie create/consolidate/eliminate per ciclo di reflection
-  - Latenza di retrieval
-  - Accuratezza delle predizioni (hit rate)
-  - Token consumati per operazione
-- [ ] Health check endpoint: `/health`
+- [x] Logging strutturato (JSON) con correlation ID per sessione
+  - `CorrelationIDMiddleware` genera/propaga `X-Correlation-ID` su ogni request
+  - `JSONFormatter` emette log come JSON single-line con timestamp, level, correlation_id, extra fields
+  - `SanitizedTextFormatter` per modalità testo con redaction
+  - Configurabile via `LOG_LEVEL` e `LOG_FORMAT` (json/text)
+- [x] Metriche:
+  - `MetricsCollector` thread-safe con counters e timers
+  - Tracciamento: chat_requests, reflection_requests, memory ops, rate_limited
+  - Timer: chat_latency, reflection_latency, prediction_latency, conversation_latency, http_request
+  - HTTP status code counters (http_200, http_429, ecc.)
+- [x] Health check endpoint: `/health`
+  - Verifica connettività Qdrant e Neo4j (se abilitato)
+  - Stato: "ok" o "degraded"
+  - Espone config attiva (provider, model) e snapshot metriche
 
 #### 5.3 Configurabilità
-- [ ] Supporto multi-provider LLM (Ollama, Gemini, OpenAI) via config
-- [ ] Parametri di tuning esposti come variabili d'ambiente:
-  - `REFLECTION_SCHEDULE` (cron expression)
+- [x] Supporto multi-provider LLM (Ollama, Gemini, OpenAI) via config
+- [x] Parametri di tuning esposti come variabili d'ambiente:
+  - `REFLECTION_SCHEDULE_HOUR`, `REFLECTION_SCHEDULE_MINUTE`
   - `PREDICTION_CONFIDENCE_THRESHOLD`
   - `MEMORY_TTL_DAYS`
   - `MAX_PRELOAD_TOKENS`
-- [ ] Profili predefiniti: `local` (Ollama), `cloud` (Gemini), `hybrid`
+  - `LOG_LEVEL`, `LOG_FORMAT`
+  - `RATE_LIMIT_ENABLED`, `RATE_LIMIT_REQUESTS_PER_MINUTE`
+- [x] Profili via Docker Compose: `local` (Ollama), `graph` (Neo4j)
 
 #### 5.4 Documentazione e Release
-- [ ] README.md con:
-  - Quick start (3 comandi per partire)
-  - Architettura spiegata
-  - Configurazione
-  - API reference
-- [ ] Script `scripts/seed_memories.py` per demo
-- [ ] CI con GitHub Actions (lint, test, build Docker)
+- [x] README.md con:
+  - Quick start (4 comandi per partire)
+  - Diagramma architettura ASCII
+  - Tabella agenti con ruoli
+  - API reference completa con esempi request/response
+  - Tabelle configurazione per ogni sezione
+  - Istruzioni Docker e sviluppo
+- [x] Script `scripts/seed_memories.py` per demo
+- [x] CI con GitHub Actions (lint, test, coverage)
 - [ ] Tag v0.1.0 e release
 
 **Deliverable**: Repository open-source completo, forkabile, con documentazione.
@@ -442,11 +460,11 @@ services:
 ## Priorità e Ordine di Implementazione
 
 ```
-Fase 1 (Fondamenta)     ████████████░░░░░░░░  Settimana 1-2
-Fase 2 (Conversation)   ████████████░░░░░░░░  Settimana 2-3
-Fase 3 (Reflection)     ████████████░░░░░░░░  Settimana 3-4
-Fase 4 (Predictive)     ████████████░░░░░░░░  Settimana 4-5
-Fase 5 (Hardening)      ████████████░░░░░░░░  Settimana 5-6
+Fase 1 (Fondamenta)     ████████████████████  Completata
+Fase 2 (Conversation)   ████████████████████  Completata
+Fase 3 (Reflection)     ████████████████████  Completata
+Fase 4 (Predictive)     ████████████████████  Completata
+Fase 5 (Hardening)      ███████████████████░  In corso (manca solo tag release)
 ```
 
 Ogni fase produce un **deliverable testabile** indipendentemente dalle successive.

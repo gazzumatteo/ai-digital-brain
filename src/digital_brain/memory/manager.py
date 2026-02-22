@@ -168,9 +168,5 @@ class MemoryManager:
         """
         all_memories = self.get_all(user_id=user_id, limit=500)
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
-        recent = [
-            m
-            for m in all_memories.results
-            if m.created_at is None or m.created_at >= cutoff
-        ]
+        recent = [m for m in all_memories.results if m.created_at is None or m.created_at >= cutoff]
         return MemorySearchResult(results=recent, total=len(recent))

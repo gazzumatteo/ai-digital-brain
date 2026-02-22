@@ -64,6 +64,27 @@ class PredictionSettings(BaseSettings):
 
     confidence_threshold: float = 0.7
     max_preload_memories: int = 10
+    max_preload_tokens: int = Field(2000, validation_alias="MAX_PRELOAD_TOKENS")
+
+
+class MemorySettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="MEMORY_", extra="ignore")
+
+    ttl_days: int = Field(0, description="Auto-expire memories after N days (0 = disabled)")
+
+
+class LoggingSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="LOG_", extra="ignore")
+
+    level: str = "INFO"
+    format: str = Field("json", description="Log format: 'json' or 'text'")
+
+
+class RateLimitSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="RATE_LIMIT_", extra="ignore")
+
+    enabled: bool = True
+    requests_per_minute: int = 60
 
 
 class APISettings(BaseSettings):
@@ -88,6 +109,9 @@ class Settings(BaseSettings):
     neo4j: Neo4jSettings = Field(default_factory=Neo4jSettings)
     reflection: ReflectionSettings = Field(default_factory=ReflectionSettings)
     prediction: PredictionSettings = Field(default_factory=PredictionSettings)
+    memory: MemorySettings = Field(default_factory=MemorySettings)
+    logging: LoggingSettings = Field(default_factory=LoggingSettings)
+    rate_limit: RateLimitSettings = Field(default_factory=RateLimitSettings)
     api: APISettings = Field(default_factory=APISettings)
 
 

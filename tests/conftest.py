@@ -9,8 +9,11 @@ import pytest
 from digital_brain.config import (
     EmbedderSettings,
     LLMSettings,
+    LoggingSettings,
+    MemorySettings,
     Neo4jSettings,
     QdrantSettings,
+    RateLimitSettings,
     Settings,
 )
 from digital_brain.memory.manager import MemoryManager
@@ -24,6 +27,9 @@ def settings() -> Settings:
         embedder=EmbedderSettings(provider="ollama", model="nomic-embed-text:latest", dims=768),
         qdrant=QdrantSettings(host="localhost", port=6333, collection="test_memories"),
         neo4j=Neo4jSettings(enabled=False),
+        memory=MemorySettings(ttl_days=0),
+        logging=LoggingSettings(level="DEBUG", format="text"),
+        rate_limit=RateLimitSettings(enabled=False),
     )
 
 

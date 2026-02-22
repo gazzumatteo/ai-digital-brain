@@ -21,3 +21,21 @@ class TestSettings:
         s = Settings()
         assert s.api.host == "0.0.0.0"
         assert s.api.port == 8000
+
+    def test_logging_defaults(self):
+        s = Settings()
+        assert s.logging.level == "INFO"
+        assert s.logging.format == "json"
+
+    def test_rate_limit_defaults(self):
+        s = Settings()
+        assert s.rate_limit.enabled is True
+        assert s.rate_limit.requests_per_minute == 60
+
+    def test_memory_defaults(self):
+        s = Settings()
+        assert s.memory.ttl_days == 0
+
+    def test_prediction_max_preload_tokens(self):
+        s = Settings()
+        assert s.prediction.max_preload_tokens == 2000
