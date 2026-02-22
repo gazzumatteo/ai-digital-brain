@@ -104,6 +104,7 @@ ai-digital-brain/
 │       │   ├── base.py             # ChannelPlugin ABC + InboundMessage/OutboundResult
 │       │   ├── registry.py         # ChannelRegistry: registro canali attivi
 │       │   ├── pipeline.py         # Inbound pipeline: normalize → dispatch
+│       │   ├── media.py            # MediaProcessor: download, validazione, conversione ADK Part
 │       │   ├── debounce.py         # Debouncer messaggi rapidi consecutivi
 │       │   ├── chunking.py         # Text/markdown chunking per risposte lunghe
 │       │   ├── security.py         # DM policy, pairing, allowlist
@@ -457,13 +458,25 @@ ai-digital-brain/
   import asyncio
 
   @dataclass
+  class MediaAttachment:
+      type: str               # "image" | "audio" | "video" | "document" | "voice" | "sticker"
+      mime_type: str           # "image/jpeg", "audio/ogg", "application/pdf", ...
+      file_id: str             # ID del file nel canale di origine (es. Telegram file_id)
+      file_size: int | None = None
+      filename: str | None = None
+      duration_seconds: float | None = None   # Per audio/video
+      width: int | None = None                # Per immagini/video
+      height: int | None = None               # Per immagini/video
+      caption: str | None = None              # Caption opzionale del media
+
+  @dataclass
   class InboundMessage:
       channel: str            # "telegram" | future channels
       chat_id: str            # ID univoco della chat
       sender_id: str          # ID del mittente
       sender_name: str        # Nome visualizzato
-      text: str               # Testo del messaggio
-      media_urls: list[str]   # URL media allegati
+      text: str               # Testo del messaggio (o caption se solo media)
+      media: list[MediaAttachment]  # Media allegati (immagini, audio, video, documenti)
       reply_to_id: Optional[str] = None
       thread_id: Optional[str] = None
       raw: dict = None        # Payload originale del canale
@@ -521,8 +534,36 @@ ai-digital-brain/
   2. **Security check**: verifica pairing/allowlist
   3. **Debounce**: coalizza messaggi rapidi consecutivi dallo stesso utente
   4. **Resolve session**: mappa `(channel, chat_id)` → `(user_id, session_key)`
-  5. **Dispatch to AI**: inoltra al Conversation Agent via `/chat`
-  6. **Send response**: risposta AI → canale di origine via `send_text()`
+  5. **Resolve media**: scarica file binari via canale → `bytes`, costruisci `types.Part` multimodali per ADK
+  6. **Dispatch to AI**: costruisci `types.Content(parts=[text_part, *media_parts])` e inoltra al Conversation Agent
+  7. **Send response**: risposta AI → canale di origine via `send_text()` o `send_media()`
+
+#### 6.3.1 Media Processing
+- [ ] `channels/media.py` — Gestione media nel pipeline:
+  ```python
+  class MediaProcessor:
+      """Scarica media dal canale e li converte in types.Part per Google ADK."""
+
+      async def download(self, channel: ChannelPlugin, attachment: MediaAttachment) -> bytes:
+          """Scarica il file binario dal canale di origine."""
+
+      def to_adk_part(self, data: bytes, mime_type: str) -> types.Part:
+          """Converte bytes + mime_type in un types.Part per Gemini multimodale."""
+          # Gemini accetta: image/*, audio/*, video/*, application/pdf
+          return types.Part.from_bytes(data=data, mime_type=mime_type)
+
+      async def process_attachments(
+          self, channel: ChannelPlugin, attachments: list[MediaAttachment]
+      ) -> list[types.Part]:
+          """Pipeline completa: download → validazione → conversione ADK Parts."""
+  ```
+- [ ] Validazione: dimensione massima file (configurabile, default 20MB)
+- [ ] MIME type allowlist (evita eseguibili, archivi malevoli)
+- [ ] Tipi supportati dal LLM multimodale:
+  - **Immagini**: `image/jpeg`, `image/png`, `image/webp`, `image/gif` → passate direttamente a Gemini
+  - **Audio**: `audio/ogg`, `audio/mpeg`, `audio/wav` → passati a Gemini (supporto nativo)
+  - **Video**: `video/mp4`, `video/webm` → passati a Gemini (supporto nativo)
+  - **Documenti**: `application/pdf` → passato a Gemini; altri formati → estrazione testo se possibile
 
 #### 6.4 Inbound Debouncer (pattern da OpenClaw)
 - [ ] `channels/debounce.py` — Coalizza messaggi rapidi:
@@ -560,6 +601,12 @@ ai-digital-brain/
   TELEGRAM_DM_POLICY: str = "pairing"  # open | pairing | disabled
   TELEGRAM_ALLOW_FROM: list[str] = []
   TELEGRAM_DEBOUNCE_MS: int = 1500
+
+  # Media processing
+  MEDIA_MAX_FILE_SIZE_MB: int = 20        # Dimensione massima file accettato
+  MEDIA_ALLOWED_TYPES: list[str] = [      # MIME types permessi
+      "image/*", "audio/*", "video/*", "application/pdf"
+  ]
   ```
 
 #### 6.8 Test
@@ -568,8 +615,10 @@ ai-digital-brain/
 - [ ] Test per DmPolicyEnforcer
 - [ ] Test per text/markdown chunking
 - [ ] Test per ChannelRegistry lifecycle
+- [ ] Test per MediaProcessor (download, validazione MIME, conversione ADK Part)
+- [ ] Test per rifiuto file troppo grandi / MIME type non permessi
 
-**Deliverable**: Infrastruttura multi-canale completa e testata. Nessun canale concreto ancora, ma il framework è pronto per accoglierli.
+**Deliverable**: Infrastruttura multi-canale completa e testata, con supporto media multimodale. Nessun canale concreto ancora, ma il framework è pronto per accoglierli.
 
 ---
 
@@ -604,10 +653,16 @@ ai-digital-brain/
 #### 7.3 Inbound Handlers (pattern da OpenClaw)
 - [ ] `channels/telegram/handlers.py`:
   - **Text messages**: normalizza, debounce, dispatch
-  - **Media messages**: buffer media group, scarica file se necessario
+  - **Photo/Image**: estrai `file_id` dalla risoluzione più alta, costruisci `MediaAttachment(type="image")`
+  - **Audio/Voice**: estrai `file_id`, durata, MIME; voice notes → `type="voice"`, audio files → `type="audio"`
+  - **Video/Video note**: estrai `file_id`, durata, dimensioni; video note (circolari) → `type="video"`
+  - **Documenti**: estrai `file_id`, `file_name`, `mime_type`; supporta PDF, fogli, testo
+  - **Media group buffering**: quando l'utente invia un album (più foto/video insieme), Telegram li consegna come update separati con stesso `media_group_id`. Bufferare e flushare come singolo `InboundMessage` con `media: list[MediaAttachment]`
+  - **Caption handling**: se il media ha una caption, usarla come `text` del messaggio; se assente, `text = ""`
   - **Text fragment reassembly**: riassembla messaggi lunghi splittati da Telegram (>4096 char)
   - **Group messages**: mention gating — rispondi solo se il bot è menzionato (@botname)
   - **Commands**: `/start` (benvenuto), `/help`, `/forget` (cancella memorie)
+  - **Sticker**: estrai `file_id` + emoji associato, costruisci `MediaAttachment(type="sticker")`
 
 #### 7.4 Outbound — Invio Risposte
 - [ ] `channels/telegram/send.py`:
@@ -634,12 +689,18 @@ ai-digital-brain/
 - [ ] Test webhook handler con mock Update
 - [ ] Test invio messaggi con mock Bot API
 - [ ] Test text fragment reassembly
-- [ ] Test media group buffering
+- [ ] Test media group buffering (album multi-foto)
+- [ ] Test ricezione singola immagine → MediaAttachment corretto
+- [ ] Test ricezione audio/voice → MediaAttachment con durata
+- [ ] Test ricezione documento (PDF) → MediaAttachment con filename e MIME
+- [ ] Test ricezione video → MediaAttachment con dimensioni e durata
+- [ ] Test caption handling (media con/senza caption)
 - [ ] Test mention gating in gruppi
 - [ ] Test comandi nativi
-- [ ] Test e2e: messaggio Telegram → risposta con memoria
+- [ ] Test e2e: foto Telegram → AI descrive immagine → memoria salvata
+- [ ] Test e2e: voice note → AI interpreta audio → risposta testuale
 
-**Deliverable**: Bot Telegram funzionante. `/start` → chat → il bot ricorda tra sessioni. Testabile in locale con polling.
+**Deliverable**: Bot Telegram funzionante con supporto multimodale. Testo, immagini, audio, video e documenti vengono tutti elaborati dall'AI. Testabile in locale con polling.
 
 ---
 
@@ -766,6 +827,14 @@ Ogni fase produce un **deliverable testabile** indipendentemente dalle successiv
 - Telegram ha un'API Bot ufficiale eccellente, gratuita, senza requisiti business
 - L'interfaccia conversazionale è **nativa** su Telegram — nessun onboarding
 - Il pattern `ChannelPlugin` (ispirato a OpenClaw) rende possibile aggiungere futuri canali (Discord, Slack, WhatsApp...) senza toccare il core
+
+### Gestione media multimodale
+- Il Digital Brain elabora **tutti i tipi di input**: testo, immagini, audio, video, documenti
+- **Strategia**: i media vengono scaricati dal canale (es. Telegram `getFile`), convertiti in `types.Part` di Google ADK, e passati direttamente al modello multimodale (Gemini) insieme al testo
+- **Flusso**: `media ricevuto → download bytes → types.Part.from_bytes(data, mime_type) → Content(parts=[text, *media]) → Gemini`
+- **Memoria**: l'AI descrive/interpreta il media e salva la descrizione testuale in memoria (Mem0 resta text-only per gli embeddings). Esempio: utente invia foto di un piatto → AI risponde "Sembra pasta alla carbonara!" → salva in memoria "L'utente ha condiviso una foto di pasta alla carbonara"
+- **Requisito LLM**: è necessario un modello multimodale (Gemini Flash/Pro). Se il provider configurato non supporta media (es. Ollama con modello text-only), il sistema notifica l'utente che i media non sono supportati con quel provider
+- **Limiti**: dimensione massima file configurabile (default 20MB), MIME type allowlist per sicurezza
 
 ### Decisioni chiave per i canali
 1. **Telegram come canale primario**
