@@ -69,9 +69,7 @@ class TestTelegramWebhook:
 
     def test_processing_error_returns_500(self):
         channel = MagicMock()
-        channel.process_webhook_update = AsyncMock(
-            side_effect=RuntimeError("boom")
-        )
+        channel.process_webhook_update = AsyncMock(side_effect=RuntimeError("boom"))
         app = _make_app(channel=channel)
         client = TestClient(app)
         resp = client.post("/webhooks/telegram", json={"update_id": 1})

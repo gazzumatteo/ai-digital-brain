@@ -38,16 +38,12 @@ def create_webhook_router(
         if webhook_secret:
             if not x_telegram_bot_api_secret_token:
                 raise HTTPException(status_code=403, detail="Missing secret token")
-            if not hmac.compare_digest(
-                x_telegram_bot_api_secret_token, webhook_secret
-            ):
+            if not hmac.compare_digest(x_telegram_bot_api_secret_token, webhook_secret):
                 raise HTTPException(status_code=403, detail="Invalid secret token")
 
         channel = get_telegram_channel()
         if channel is None:
-            raise HTTPException(
-                status_code=503, detail="Telegram channel not initialized"
-            )
+            raise HTTPException(status_code=503, detail="Telegram channel not initialized")
 
         try:
             payload = await request.json()
@@ -56,9 +52,7 @@ def create_webhook_router(
             raise
         except Exception:
             logger.exception("Error processing Telegram webhook")
-            raise HTTPException(
-                status_code=500, detail="Internal error processing update"
-            )
+            raise HTTPException(status_code=500, detail="Internal error processing update")
 
         return {"status": "ok"}
 

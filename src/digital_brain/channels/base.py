@@ -124,9 +124,7 @@ class ChannelPlugin(ABC):
         """Send a plain-text (or markdown) message to a chat."""
 
     @abstractmethod
-    async def send_media(
-        self, to: str, text: str, media_url: str, **kwargs: Any
-    ) -> OutboundResult:
+    async def send_media(self, to: str, text: str, media_url: str, **kwargs: Any) -> OutboundResult:
         """Send a media message (image, file, etc.) with optional caption."""
 
     @abstractmethod

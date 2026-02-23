@@ -153,9 +153,7 @@ def normalize_update(update: Update) -> InboundMessage | None:
         sender_name=sender_name,
         text=text,
         media=media,
-        reply_to_id=str(message.reply_to_message.message_id)
-        if message.reply_to_message
-        else None,
+        reply_to_id=str(message.reply_to_message.message_id) if message.reply_to_message else None,
         thread_id=str(message.message_thread_id) if message.message_thread_id else None,
         raw={
             "update_id": update.update_id,
@@ -181,9 +179,7 @@ class MediaGroupBuffer:
         self._timers: dict[str, asyncio.TimerHandle] = {}
         self._on_flush: Callable[[InboundMessage], Awaitable[None]] | None = None
 
-    def set_flush_callback(
-        self, callback: Callable[[InboundMessage], Awaitable[None]]
-    ) -> None:
+    def set_flush_callback(self, callback: Callable[[InboundMessage], Awaitable[None]]) -> None:
         self._on_flush = callback
 
     async def add(self, media_group_id: str, message: InboundMessage) -> None:

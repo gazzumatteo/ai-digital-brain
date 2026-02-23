@@ -100,9 +100,7 @@ class TelegramChannel(ChannelPlugin):
         logger.info("Telegram bot started: @%s", self._bot_username)
 
         # Register a catch-all message handler
-        self._app.add_handler(
-            MessageHandler(filters.ALL, self._handle_update)
-        )
+        self._app.add_handler(MessageHandler(filters.ALL, self._handle_update))
 
         await self._app.initialize()
 
@@ -208,9 +206,7 @@ class TelegramChannel(ChannelPlugin):
             channel="telegram", message_id="", success=False, error="No chunks sent"
         )
 
-    async def send_media(
-        self, to: str, text: str, media_url: str, **kwargs: Any
-    ) -> OutboundResult:
+    async def send_media(self, to: str, text: str, media_url: str, **kwargs: Any) -> OutboundResult:
         """Send a media message to a Telegram chat."""
         return await send_media_message(
             self.bot,

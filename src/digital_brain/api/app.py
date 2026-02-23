@@ -45,9 +45,7 @@ def _build_dispatch_fn(orchestrator: DigitalBrainOrchestrator) -> Any:
     return dispatch
 
 
-async def _handle_command(
-    channel: Any, command: str, args: str, message: Any
-) -> None:
+async def _handle_command(channel: Any, command: str, args: str, message: Any) -> None:
     """Handle Telegram bot commands."""
     from digital_brain.channels.telegram.send import send_text_message
 
@@ -57,7 +55,8 @@ async def _handle_command(
 
     if command == "start":
         await send_text_message(
-            bot, chat_id,
+            bot,
+            chat_id,
             "Ciao! Sono il tuo Digital Brain. "
             "Puoi parlarmi di qualsiasi cosa e ricorderò le nostre conversazioni.",
         )
@@ -93,9 +92,7 @@ async def _handle_command(
         brain_id = mapper.resolve(sender_id, message.sender_name)
         manager = MemoryManager()
         manager.delete_all(user_id=brain_id)
-        await send_text_message(
-            bot, chat_id, "Tutte le tue memorie sono state cancellate."
-        )
+        await send_text_message(bot, chat_id, "Tutte le tue memorie sono state cancellate.")
     elif command == "reflect":
         orchestrator = get_orchestrator()
         mapper = _get_user_mapper()
@@ -144,9 +141,7 @@ async def _setup_telegram(orchestrator: DigitalBrainOrchestrator) -> None:
     # Build pipeline components
     security = DmPolicyEnforcer(
         policy=settings.telegram.dm_policy,
-        allow_from=[
-            f"telegram:{uid}" for uid in settings.telegram.allow_from
-        ],
+        allow_from=[f"telegram:{uid}" for uid in settings.telegram.allow_from],
     )
     debouncer = InboundDebouncer(debounce_ms=settings.telegram.debounce_ms)
     media_processor = MediaProcessor(
@@ -210,9 +205,7 @@ async def _setup_telegram(orchestrator: DigitalBrainOrchestrator) -> None:
         )
     else:
         # Polling mode: run in a background task
-        _telegram_task = asyncio.create_task(
-            _telegram_channel.start(_abort_signal)
-        )
+        _telegram_task = asyncio.create_task(_telegram_channel.start(_abort_signal))
         logger.info("Telegram polling mode started")
 
 

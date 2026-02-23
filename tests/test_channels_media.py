@@ -66,9 +66,7 @@ class TestMediaProcessorValidation:
 
     def test_rejected_mime_type(self):
         proc = MediaProcessor()
-        att = MediaAttachment(
-            type="document", mime_type="application/x-executable", file_id="f1"
-        )
+        att = MediaAttachment(type="document", mime_type="application/x-executable", file_id="f1")
         with pytest.raises(MediaValidationError, match="not allowed"):
             proc.validate(att)
 
@@ -80,9 +78,7 @@ class TestMediaProcessorValidation:
 
     def test_file_too_large(self):
         proc = MediaProcessor(max_file_size_bytes=1000)
-        att = MediaAttachment(
-            type="image", mime_type="image/jpeg", file_id="f1", file_size=2000
-        )
+        att = MediaAttachment(type="image", mime_type="image/jpeg", file_id="f1", file_size=2000)
         with pytest.raises(MediaValidationError, match="exceeds limit"):
             proc.validate(att)
 
@@ -128,9 +124,7 @@ class TestMediaProcessorToAdkPart:
             mock_types.Part.from_bytes.return_value = "mock_part"
             part = proc.to_adk_part(b"data", "image/jpeg")
             assert part == "mock_part"
-            mock_types.Part.from_bytes.assert_called_once_with(
-                data=b"data", mime_type="image/jpeg"
-            )
+            mock_types.Part.from_bytes.assert_called_once_with(data=b"data", mime_type="image/jpeg")
 
 
 class TestMediaProcessorProcessAttachments:

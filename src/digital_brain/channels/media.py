@@ -57,8 +57,7 @@ class MediaProcessor:
         """
         if not self._is_mime_allowed(attachment.mime_type):
             raise MediaValidationError(
-                f"MIME type '{attachment.mime_type}' is not allowed. "
-                f"Allowed: {self._allowed_types}"
+                f"MIME type '{attachment.mime_type}' is not allowed. Allowed: {self._allowed_types}"
             )
         if attachment.file_size is not None and attachment.file_size > self._max_file_size_bytes:
             max_mb = self._max_file_size_bytes / (1024 * 1024)

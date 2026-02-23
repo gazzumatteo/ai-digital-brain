@@ -103,9 +103,7 @@ class InboundPipeline:
         # 3. Resolve media (download + convert to ADK parts)
         media_parts: list[Any] = []
         if message.media and channel is not None:
-            media_parts = await self._media_processor.process_attachments(
-                channel, message.media
-            )
+            media_parts = await self._media_processor.process_attachments(channel, message.media)
 
         # 4. Resolve user ID
         if self._resolve_user_id is not None:

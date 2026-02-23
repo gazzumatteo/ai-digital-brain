@@ -39,9 +39,7 @@ class TestSendTextMessage:
     async def test_reply_to_only_first_chunk(self):
         bot = _make_bot()
         long_text = "A" * (TELEGRAM_TEXT_LIMIT + 100)
-        await send_text_message(
-            bot, chat_id="42", text=long_text, reply_to_message_id=10
-        )
+        await send_text_message(bot, chat_id="42", text=long_text, reply_to_message_id=10)
         # First call should have reply_to, second should not
         calls = bot.send_message.call_args_list
         assert len(calls) >= 2
@@ -77,23 +75,21 @@ class TestSendTextMessage:
 
     async def test_thread_id_passed(self):
         bot = _make_bot()
-        await send_text_message(
-            bot, chat_id="42", text="Hello", message_thread_id=77
-        )
+        await send_text_message(bot, chat_id="42", text="Hello", message_thread_id=77)
         bot.send_message.assert_called()
 
 
 class TestSendMediaMessage:
     async def test_send_photo(self):
         bot = _make_bot()
-        result = await send_media_message(bot, chat_id="42", media_url="https://example.com/img.jpg")
+        result = await send_media_message(
+            bot, chat_id="42", media_url="https://example.com/img.jpg"
+        )
         assert result.success is True
 
     async def test_send_photo_with_caption(self):
         bot = _make_bot()
-        result = await send_media_message(
-            bot, chat_id="42", media_url="url", caption="nice pic"
-        )
+        result = await send_media_message(bot, chat_id="42", media_url="url", caption="nice pic")
         assert result.success is True
         call_kwargs = bot.send_photo.call_args
         assert "caption" in call_kwargs.kwargs
@@ -101,9 +97,7 @@ class TestSendMediaMessage:
     async def test_caption_truncated(self):
         bot = _make_bot()
         long_caption = "C" * (TELEGRAM_CAPTION_LIMIT + 100)
-        await send_media_message(
-            bot, chat_id="42", media_url="url", caption=long_caption
-        )
+        await send_media_message(bot, chat_id="42", media_url="url", caption=long_caption)
         call_kwargs = bot.send_photo.call_args
         assert len(call_kwargs.kwargs["caption"]) <= TELEGRAM_CAPTION_LIMIT
 
