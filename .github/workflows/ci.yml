@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, "claude/**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -12,7 +12,7 @@ env:
 jobs:
   lint:
     name: Lint
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -29,7 +29,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: lint
     env:
       # --- Secrets mapped to env vars the app expects ---
@@ -53,11 +53,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev
 
-      - name: Run tests
-        run: uv run pytest tests/ -v --tb=short
-
       - name: Run tests with coverage
-        run: uv run pytest tests/ --cov=digital_brain --cov-report=term-missing --cov-report=xml
+        run: uv run pytest tests/ -v --tb=short --cov=digital_brain --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage artifact
         if: always()
