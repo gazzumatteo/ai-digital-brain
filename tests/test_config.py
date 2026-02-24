@@ -12,10 +12,12 @@ class TestSettings:
         assert s.reflection.schedule_hour == 3
         assert s.prediction.confidence_threshold == 0.7
 
-    def test_embedder_defaults(self):
+    def test_embedder_defaults_auto_resolves_to_llm_provider(self):
         s = Settings()
-        assert s.embedder.provider == "ollama"
-        assert s.embedder.dims == 768
+        # Default LLM provider is "gemini", so embedder "auto" resolves to gemini
+        assert s.embedder.provider == "gemini"
+        assert s.embedder.model == "gemini-embedding-001"
+        assert s.embedder.dims == 3072
 
     def test_api_defaults(self):
         s = Settings()

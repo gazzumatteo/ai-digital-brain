@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Mapping: llm_provider -> (embedder_model, embedding_dims)
+_EMBEDDER_DEFAULTS: dict[str, tuple[str, int]] = {
+    "gemini": ("gemini-embedding-001", 3072),
+    "openai": ("text-embedding-3-small", 1536),
+    "ollama": ("nomic-embed-text:latest", 768),
+}
 
 
 class LLMSettings(BaseSettings):
@@ -31,7 +38,7 @@ class EmbedderSettings(BaseSettings):
         extra="ignore",
     )
 
-    provider: str = "ollama"
+    provider: str = "auto"
     model: str = "nomic-embed-text:latest"
     dims: int = Field(768, validation_alias="EMBEDDING_DIMS")
     ollama_base_url: str = Field("http://localhost:11434", validation_alias="OLLAMA_BASE_URL")
@@ -160,6 +167,17 @@ class Settings(BaseSettings):
     api: APISettings = Field(default_factory=APISettings)
     telegram: TelegramSettings = Field(default_factory=TelegramSettings)
     media: MediaSettings = Field(default_factory=MediaSettings)
+
+    @model_validator(mode="after")
+    def _resolve_embedder_auto(self) -> Settings:
+        """When EMBEDDER_PROVIDER is 'auto', mirror the LLM provider with sensible defaults."""
+        if self.embedder.provider == "auto":
+            provider = self.llm.provider
+            model, dims = _EMBEDDER_DEFAULTS.get(provider, ("nomic-embed-text:latest", 768))
+            self.embedder.provider = provider
+            self.embedder.model = model
+            self.embedder.dims = dims
+        return self
 
 
 _settings: Settings | None = None
