@@ -42,21 +42,30 @@ L'API e disponibile su `http://localhost:8000`. Verifica lo stato con `GET /heal
 
 Per usare il Digital Brain via Telegram:
 
-```bash
-# 1. Crea un bot su Telegram parlando con @BotFather
-#    - Invia /newbot e segui le istruzioni
-#    - Copia il token del bot
+1. **Crea un bot** su Telegram parlando con `@BotFather` — invia `/newbot` e copia il token.
 
-# 2. Aggiungi le variabili nel tuo .env
+2. **Configura il `.env`:**
+
+```bash
 TELEGRAM_ENABLED=true
 TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234...
 TELEGRAM_DM_POLICY=open
+```
 
-# 3. Avvia il server (il bot si avvia in polling mode)
+3. **Avvia il server** (il bot si avvia in polling mode):
+
+```bash
 uv run uvicorn digital_brain.api.app:app --reload
 ```
 
 Il bot risponde ai messaggi privati e, nei gruppi, solo quando viene menzionato con `@nomebot`.
+
+> **Nota sulla DM Policy:** Il default e `pairing`, che blocca silenziosamente tutti i messaggi da utenti non presenti in `TELEGRAM_ALLOW_FROM`. Per iniziare velocemente usa `open`. Per restringere l'accesso al solo tuo account, usa `pairing` con il tuo Telegram user ID (puoi trovarlo scrivendo a `@userinfobot` su Telegram):
+>
+> ```bash
+> TELEGRAM_DM_POLICY=pairing
+> TELEGRAM_ALLOW_FROM=["123456789"]
+> ```
 
 #### Comandi Telegram
 
@@ -238,8 +247,8 @@ All settings are controlled via environment variables (or `.env` file). See `.en
 | `TELEGRAM_DEBOUNCE_MS` | `1500` | Millisecondi di attesa per coalizzare messaggi rapidi |
 
 **DM Policy:**
-- `open` — Tutti possono interagire con il bot
-- `pairing` — Solo gli utenti nella allowlist (utile per uso personale)
+- `open` — Tutti possono interagire con il bot (consigliato per iniziare)
+- `pairing` — Solo gli utenti in `TELEGRAM_ALLOW_FROM` possono interagire. I messaggi da utenti sconosciuti vengono ignorati silenziosamente. Per trovare il tuo Telegram user ID, scrivi a `@userinfobot` su Telegram.
 - `disabled` — DM completamente disabilitati
 
 **Modalita di ricezione:**
