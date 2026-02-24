@@ -80,7 +80,7 @@ class InboundDebouncer:
             return
 
         combined = self._coalesce(entry.messages)
-        logger.debug(
+        logger.info(
             "Debounce flush: key=%s messages=%d",
             key,
             len(entry.messages),

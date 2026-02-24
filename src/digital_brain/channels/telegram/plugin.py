@@ -150,6 +150,13 @@ class TelegramChannel(ChannelPlugin):
         if message is None:
             return
 
+        logger.info(
+            "Received message: chat=%s sender=%s text=%s",
+            message.chat_id,
+            message.sender_id,
+            message.text[:80] if message.text else "(no text)",
+        )
+
         raw = message.raw or {}
         is_group = raw.get("is_group", False)
 
