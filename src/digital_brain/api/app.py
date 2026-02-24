@@ -232,8 +232,16 @@ async def _teardown_telegram() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    import os
+
     settings = get_settings()
     setup_logging(level=settings.logging.level, fmt=settings.logging.format)
+
+    # Google ADK reads GOOGLE_API_KEY from os.environ, but Pydantic Settings
+    # only loads .env into its own object.  Bridge the gap.
+    if settings.llm.google_api_key and "GOOGLE_API_KEY" not in os.environ:
+        os.environ["GOOGLE_API_KEY"] = settings.llm.google_api_key
+
     logger.info("Digital Brain v0.1.0 starting up…")
     orchestrator = get_orchestrator()
 

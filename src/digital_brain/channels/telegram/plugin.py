@@ -140,31 +140,6 @@ class TelegramChannel(ChannelPlugin):
 
         self._app.add_error_handler(_error_handler)
 
-        # --- DEEP DIAGNOSTIC: bypass PTB, use httpx directly ---
-        import httpx
-
-        api_base = f"https://api.telegram.org/bot{self._bot_token}"
-        async with httpx.AsyncClient(timeout=30) as client:
-            # 1) Check if a webhook is still set (most common cause)
-            try:
-                resp = await client.post(f"{api_base}/getWebhookInfo")
-                logger.info("getWebhookInfo: %s", resp.text[:500])
-            except Exception:
-                logger.exception("getWebhookInfo FAILED")
-
-            # 2) Raw getUpdates — log the FULL Telegram API response
-            logger.info("Calling raw getUpdates via httpx (10s timeout)…")
-            logger.info(">>> SEND A MESSAGE TO THE BOT NOW <<<")
-            try:
-                resp = await client.post(
-                    f"{api_base}/getUpdates",
-                    json={"timeout": 10, "limit": 5},
-                    timeout=20,
-                )
-                logger.info("Raw getUpdates response: status=%s body=%s", resp.status_code, resp.text[:500])
-            except Exception:
-                logger.exception("Raw getUpdates via httpx FAILED")
-
         await self._app.updater.start_polling(
             drop_pending_updates=False,  # we already cleared above
             allowed_updates=Update.ALL_TYPES,
