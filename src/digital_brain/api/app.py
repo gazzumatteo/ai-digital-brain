@@ -40,7 +40,7 @@ def _build_dispatch_fn(orchestrator: DigitalBrainOrchestrator) -> Any:
     """Build the AI dispatch function for the inbound pipeline."""
 
     async def dispatch(user_id: str, text: str, media_parts: list[Any]) -> str:
-        return await orchestrator.chat(user_id=user_id, message=text)
+        return await orchestrator.chat(user_id=user_id, message=text, media_parts=media_parts)
 
     return dispatch
 

@@ -70,6 +70,7 @@ class DigitalBrainOrchestrator:
         message: str,
         session_id: str | None = None,
         enable_prediction: bool = True,
+        media_parts: list | None = None,
     ) -> str:
         """Send a message to the Conversation Agent and return the response.
 
@@ -92,7 +93,10 @@ class DigitalBrainOrchestrator:
                 )
 
         # --- Conversation ---
-        content = types.Content(role="user", parts=[types.Part(text=message)])
+        parts: list = [types.Part(text=message)] if message else []
+        if media_parts:
+            parts.extend(media_parts)
+        content = types.Content(role="user", parts=parts)
 
         response_text = ""
         with metrics.timer("conversation_latency"):
