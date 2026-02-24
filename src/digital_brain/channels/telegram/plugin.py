@@ -140,6 +140,20 @@ class TelegramChannel(ChannelPlugin):
 
         self._app.add_error_handler(_error_handler)
 
+        # --- RAW API TEST: call getUpdates directly to see if Telegram responds ---
+        logger.info("Testing raw getUpdates (waiting 5s for a message)…")
+        try:
+            test_updates = await self._bot.get_updates(timeout=5)
+            logger.info("Raw getUpdates returned %d update(s)", len(test_updates))
+            for u in test_updates:
+                logger.info(
+                    "  update_id=%s text=%s",
+                    u.update_id,
+                    u.message.text[:50] if u.message and u.message.text else "(no text)",
+                )
+        except Exception:
+            logger.exception("Raw getUpdates FAILED")
+
         await self._app.updater.start_polling(
             drop_pending_updates=False,  # we already cleared above
             allowed_updates=Update.ALL_TYPES,
