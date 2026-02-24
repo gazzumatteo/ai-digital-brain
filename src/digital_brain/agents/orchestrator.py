@@ -96,13 +96,20 @@ class DigitalBrainOrchestrator:
 
         response_text = ""
         with metrics.timer("conversation_latency"):
-            for event in self._conversation_runner.run(
+            async for event in self._conversation_runner.run_async(
                 user_id=user_id,
                 session_id=session.id,
                 new_message=content,
             ):
-                if event.is_final_response() and event.content and event.content.parts:
-                    response_text = event.content.parts[0].text
+                if event.is_final_response():
+                    if event.content and event.content.parts:
+                        response_text = event.content.parts[0].text or ""
+                    logger.debug(
+                        "Final event: has_content=%s parts=%s text_len=%d",
+                        event.content is not None,
+                        len(event.content.parts) if event.content and event.content.parts else 0,
+                        len(response_text),
+                    )
 
         return response_text or "No response generated."
 
@@ -119,13 +126,13 @@ class DigitalBrainOrchestrator:
 
         response_text = ""
         with metrics.timer("reflection_agent_latency"):
-            for event in self._reflection_runner.run(
+            async for event in self._reflection_runner.run_async(
                 user_id=user_id,
                 session_id=session.id,
                 new_message=content,
             ):
                 if event.is_final_response() and event.content and event.content.parts:
-                    response_text = event.content.parts[0].text
+                    response_text = event.content.parts[0].text or ""
 
         metrics.inc("reflections_completed")
         logger.info(
@@ -143,13 +150,13 @@ class DigitalBrainOrchestrator:
         content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
         preloaded = ""
-        for event in self._predictive_runner.run(
+        async for event in self._predictive_runner.run_async(
             user_id=user_id,
             session_id=pred_session.id,
             new_message=content,
         ):
             if event.is_final_response() and event.content and event.content.parts:
-                preloaded = event.content.parts[0].text
+                preloaded = event.content.parts[0].text or ""
 
         if preloaded:
             # Enforce max token budget for pre-loaded context
