@@ -124,9 +124,31 @@ class TelegramChannel(ChannelPlugin):
     async def _start_polling(self, abort_signal: asyncio.Event) -> None:
         """Start long-polling for updates."""
         self._running = True
+
+        # Explicitly delete any stale webhook before polling
+        try:
+            result = await self._bot.delete_webhook(drop_pending_updates=True)
+            logger.info("delete_webhook result: %s", result)
+        except Exception:
+            logger.exception("Failed to delete webhook")
+
         await self._app.start()
-        await self._app.updater.start_polling(drop_pending_updates=True)
-        logger.info("Telegram polling started")
+
+        # Register a global error handler so PTB errors aren't silent
+        async def _error_handler(update: object, context: Any) -> None:
+            logger.error("PTB error: %s (update=%s)", context.error, update)
+
+        self._app.add_error_handler(_error_handler)
+
+        await self._app.updater.start_polling(
+            drop_pending_updates=False,  # we already cleared above
+            allowed_updates=Update.ALL_TYPES,
+        )
+        logger.info(
+            "Telegram polling started — app.running=%s updater.running=%s",
+            self._app.running,
+            self._app.updater.running if self._app.updater else "no updater",
+        )
         await abort_signal.wait()
         logger.info("Telegram polling stopping…")
         await self._app.updater.stop()
@@ -146,8 +168,14 @@ class TelegramChannel(ChannelPlugin):
 
     async def _handle_update(self, update: Update, context: Any) -> None:
         """Process an incoming Telegram update."""
+        logger.info(
+            "RAW update received: update_id=%s has_message=%s",
+            update.update_id,
+            update.message is not None,
+        )
         message = normalize_update(update)
         if message is None:
+            logger.warning("normalize_update returned None for update_id=%s", update.update_id)
             return
 
         logger.info(
