@@ -8,6 +8,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class LLMSettings(BaseSettings):
     model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
         env_prefix="LLM_",
         populate_by_name=True,
         extra="ignore",
@@ -22,6 +24,8 @@ class LLMSettings(BaseSettings):
 
 class EmbedderSettings(BaseSettings):
     model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
         env_prefix="EMBEDDER_",
         populate_by_name=True,
         extra="ignore",
@@ -34,7 +38,9 @@ class EmbedderSettings(BaseSettings):
 
 
 class QdrantSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="QDRANT_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="QDRANT_", extra="ignore"
+    )
 
     host: str = "localhost"
     port: int = 6333
@@ -42,7 +48,9 @@ class QdrantSettings(BaseSettings):
 
 
 class Neo4jSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="NEO4J_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="NEO4J_", extra="ignore"
+    )
 
     enabled: bool = False
     url: str = "bolt://localhost:7687"
@@ -51,7 +59,9 @@ class Neo4jSettings(BaseSettings):
 
 
 class ReflectionSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="REFLECTION_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="REFLECTION_", extra="ignore"
+    )
 
     schedule_hour: int = 3
     schedule_minute: int = 0
@@ -60,7 +70,9 @@ class ReflectionSettings(BaseSettings):
 
 
 class PredictionSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="PREDICTION_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="PREDICTION_", extra="ignore"
+    )
 
     confidence_threshold: float = 0.7
     max_preload_memories: int = 10
@@ -68,34 +80,44 @@ class PredictionSettings(BaseSettings):
 
 
 class MemorySettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="MEMORY_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="MEMORY_", extra="ignore"
+    )
 
     ttl_days: int = Field(0, description="Auto-expire memories after N days (0 = disabled)")
 
 
 class LoggingSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="LOG_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="LOG_", extra="ignore"
+    )
 
     level: str = "INFO"
     format: str = Field("json", description="Log format: 'json' or 'text'")
 
 
 class RateLimitSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="RATE_LIMIT_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="RATE_LIMIT_", extra="ignore"
+    )
 
     enabled: bool = True
     requests_per_minute: int = 60
 
 
 class APISettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="API_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="API_", extra="ignore"
+    )
 
     host: str = "0.0.0.0"
     port: int = 8000
 
 
 class TelegramSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="TELEGRAM_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="TELEGRAM_", extra="ignore"
+    )
 
     enabled: bool = False
     bot_token: str = ""
@@ -107,7 +129,9 @@ class TelegramSettings(BaseSettings):
 
 
 class MediaSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="MEDIA_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="MEDIA_", extra="ignore"
+    )
 
     max_file_size_mb: int = 20
     allowed_types: list[str] = Field(
