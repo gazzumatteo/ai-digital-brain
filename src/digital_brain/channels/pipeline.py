@@ -112,7 +112,8 @@ class InboundPipeline:
             user_id = f"{cid}_{message.sender_id}"
 
         # 5. Dispatch to AI
-        logger.info("Dispatching to AI: user=%s text=%s", user_id, message.text[:80] if message.text else "")
+        preview = message.text[:80] if message.text else ""
+        logger.info("Dispatching to AI: user=%s text=%s", user_id, preview)
         try:
             response_text = await self._dispatch_fn(user_id, message.text, media_parts)
         except Exception:

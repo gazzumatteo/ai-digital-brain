@@ -1,5 +1,9 @@
 # Digital Brain
 
+[![CI](https://github.com/gazzumatteo/ai-digital-brain/actions/workflows/ci.yml/badge.svg)](https://github.com/gazzumatteo/ai-digital-brain/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/gazzumatteo/BADGES_GIST_ID/raw/ai-digital-brain-junit-tests.json)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/gazzumatteo/BADGES_GIST_ID/raw/ai-digital-brain-cobertura-coverage.json)
+
 A cognitive architecture for AI agents with persistent memory, inspired by **Predictive Coding** and **Active Inference**.
 
 Built on [Google ADK](https://google.github.io/adk-docs/) + [Mem0](https://github.com/mem0ai/mem0), the Digital Brain gives LLM agents the ability to remember, consolidate, and anticipate — mimicking the human memory lifecycle.
