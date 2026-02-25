@@ -1,8 +1,8 @@
 # Digital Brain
 
 [![CI](https://github.com/gazzumatteo/ai-digital-brain/actions/workflows/ci.yml/badge.svg)](https://github.com/gazzumatteo/ai-digital-brain/actions/workflows/ci.yml)
-![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/gazzumatteo/BADGES_GIST_ID/raw/ai-digital-brain-junit-tests.json)
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/gazzumatteo/BADGES_GIST_ID/raw/ai-digital-brain-cobertura-coverage.json)
+![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/gazzumatteo/c2dba38f3b95c6a6d0aee6915bd6bda1/raw/ai-digital-brain-junit-tests.json)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/gazzumatteo/c2dba38f3b95c6a6d0aee6915bd6bda1/raw/ai-digital-brain-cobertura-coverage.json)
 
 A cognitive architecture for AI agents with persistent memory, inspired by **Predictive Coding** and **Active Inference**.
 

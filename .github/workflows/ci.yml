@@ -67,5 +67,5 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: gaelgirodon/ci-badges-action@v1
         with:
-          gist-id: ${{ vars.BADGES_GIST_ID }}
+          gist-id: c2dba38f3b95c6a6d0aee6915bd6bda1
           token: ${{ secrets.GIST_TOKEN }}
