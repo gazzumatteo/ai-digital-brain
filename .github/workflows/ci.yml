@@ -40,8 +40,7 @@ jobs:
       # --- Non-secret test defaults ---
       LLM_PROVIDER: gemini
       LLM_MODEL: gemini-3-flash-preview
-      EMBEDDER_PROVIDER: ollama
-      EMBEDDER_MODEL: nomic-embed-text:latest
+      EMBEDDER_PROVIDER: auto
       QDRANT_HOST: localhost
       QDRANT_PORT: "6333"
       NEO4J_ENABLED: "false"
