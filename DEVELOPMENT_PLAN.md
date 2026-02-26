@@ -1,23 +1,23 @@
-# Digital Brain — Piano di Sviluppo
+# Digital Brain — Development Plan
 
-## Panoramica del Progetto
+## Project Overview
 
-Implementazione di un **Digital Brain** basato sui principi di Predictive Coding, Active Inference e consolidamento durante il "sonno digitale", come descritto nella serie di articoli *"From Predictive Coding to Digital Brain"*.
+Implementation of a **Digital Brain** based on the principles of Predictive Coding, Active Inference, and consolidation during "digital sleep", as described in the article series *"From Predictive Coding to Digital Brain"*.
 
-**Stack tecnologico:**
-- **Linguaggio**: Python 3.11+
+**Technology stack:**
+- **Language**: Python 3.11+
 - **Agent Framework**: Google ADK (Agent Development Kit)
 - **Memory Layer**: Mem0 (Apache 2.0)
 - **Vector Store**: Qdrant (self-hosted)
-- **Graph Store**: Neo4j (opzionale)
-- **LLM locale**: Ollama
-- **LLM cloud**: Google Gemini (default per ADK), configurabile
+- **Graph Store**: Neo4j (optional)
+- **Local LLM**: Ollama
+- **Cloud LLM**: Google Gemini (default for ADK), configurable
 - **Scheduling**: APScheduler
-- **Infrastruttura**: Docker Compose
+- **Infrastructure**: Docker Compose
 
 ---
 
-## Architettura ad Alto Livello
+## High-Level Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -62,7 +62,7 @@ Implementazione di un **Digital Brain** basato sui principi di Predictive Coding
 │                           │                                  │
 │   ┌───────────────────────▼────────────────────────────┐     │
 │   │                   LLM LAYER                        │     │
-│   │        (Ollama / Gemini / configurabile)           │     │
+│   │        (Ollama / Gemini / configurable)            │     │
 │   └────────────────────────────────────────────────────┘     │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
@@ -70,64 +70,64 @@ Implementazione di un **Digital Brain** basato sui principi di Predictive Coding
 
 ---
 
-## Struttura del Progetto
+## Project Structure
 
 ```
 ai-digital-brain/
-├── docker-compose.yml              # Infrastruttura completa
-├── Dockerfile                      # Immagine dell'applicazione
-├── pyproject.toml                  # Dipendenze e metadata (uv/pip)
-├── .env.example                    # Template variabili d'ambiente
+├── docker-compose.yml              # Full infrastructure
+├── Dockerfile                      # Application image
+├── pyproject.toml                  # Dependencies and metadata (uv/pip)
+├── .env.example                    # Environment variables template
 ├── .gitignore
 ├── README.md
 │
 ├── src/
 │   └── digital_brain/
 │       ├── __init__.py
-│       ├── config.py               # Configurazione centralizzata (Pydantic Settings)
+│       ├── config.py               # Centralized configuration (Pydantic Settings)
 │       │
-│       ├── memory/                 # Layer di memoria (Mem0 wrapper)
+│       ├── memory/                 # Memory layer (Mem0 wrapper)
 │       │   ├── __init__.py
-│       │   ├── manager.py          # MemoryManager: init e config Mem0
+│       │   ├── manager.py          # MemoryManager: Mem0 init and config
 │       │   ├── tools.py            # ADK Tools: memory_store, memory_search, memory_get
-│       │   └── schemas.py          # Pydantic models per memory entities
+│       │   └── schemas.py          # Pydantic models for memory entities
 │       │
 │       ├── agents/                 # Google ADK Agents
 │       │   ├── __init__.py
-│       │   ├── conversation.py     # ConversationAgent: dialogo con memoria
-│       │   ├── reflection.py       # ReflectionAgent: consolidamento ("digital sleep")
-│       │   ├── predictive.py       # PredictiveAgent: pre-loading proattivo
-│       │   └── orchestrator.py     # Orchestratore principale
+│       │   ├── conversation.py     # ConversationAgent: memory-augmented dialogue
+│       │   ├── reflection.py       # ReflectionAgent: consolidation ("digital sleep")
+│       │   ├── predictive.py       # PredictiveAgent: proactive pre-loading
+│       │   └── orchestrator.py     # Main orchestrator
 │       │
-│       ├── channels/               # Multi-channel messaging layer (Fase 6+)
+│       ├── channels/               # Multi-channel messaging layer (Phase 6+)
 │       │   ├── __init__.py
 │       │   ├── base.py             # ChannelPlugin ABC + InboundMessage/OutboundResult
-│       │   ├── registry.py         # ChannelRegistry: registro canali attivi
+│       │   ├── registry.py         # ChannelRegistry: active channels registry
 │       │   ├── pipeline.py         # Inbound pipeline: normalize → dispatch
-│       │   ├── media.py            # MediaProcessor: download, validazione, conversione ADK Part
-│       │   ├── debounce.py         # Debouncer messaggi rapidi consecutivi
-│       │   ├── chunking.py         # Text/markdown chunking per risposte lunghe
+│       │   ├── media.py            # MediaProcessor: download, validation, ADK Part conversion
+│       │   ├── debounce.py         # Rapid consecutive message debouncer
+│       │   ├── chunking.py         # Text/markdown chunking for long responses
 │       │   ├── security.py         # DM policy, pairing, allowlist
 │       │   │
-│       │   └── telegram/           # Telegram Bot API integration (Fase 7)
+│       │   └── telegram/           # Telegram Bot API integration (Phase 7)
 │       │       ├── __init__.py
 │       │       ├── plugin.py       # TelegramChannel(ChannelPlugin)
 │       │       ├── handlers.py     # Inbound: text, media, commands, groups
-│       │       ├── send.py         # Outbound: invio messaggi/media
+│       │       ├── send.py         # Outbound: message/media sending
 │       │       └── mapping.py      # Telegram user_id → brain user_id
 │       │
-│       ├── tools/                  # ADK Tools custom
+│       ├── tools/                  # Custom ADK Tools
 │       │   ├── __init__.py
-│       │   ├── calendar_tool.py    # (opzionale) Integrazione calendario
-│       │   └── context_tool.py     # Segnali di contesto (ora, sessione, pattern)
+│       │   ├── calendar_tool.py    # (optional) Calendar integration
+│       │   └── context_tool.py     # Context signals (time, session, patterns)
 │       │
-│       ├── scheduler/              # Scheduling per Reflection Agent
+│       ├── scheduler/              # Scheduling for Reflection Agent
 │       │   ├── __init__.py
 │       │   └── jobs.py             # Job definitions (APScheduler)
 │       │
-│       └── api/                    # Interfaccia HTTP (FastAPI)
+│       └── api/                    # HTTP interface (FastAPI)
 │           ├── __init__.py
-│           ├── app.py              # FastAPI app (o ADK dev server wrapper)
+│           ├── app.py              # FastAPI app (or ADK dev server wrapper)
 │           ├── routes.py           # Endpoints: /chat, /memories, /reflect
 │           └── webhooks.py         # Webhook endpoint: /webhooks/telegram
 │
@@ -138,80 +138,80 @@ ai-digital-brain/
 │   ├── test_conversation_agent.py
 │   ├── test_reflection_agent.py
 │   ├── test_predictive_agent.py
-│   └── test_integration.py         # Test end-to-end con servizi reali
+│   └── test_integration.py         # End-to-end tests with real services
 │
 └── scripts/
-    ├── seed_memories.py            # Popola memoria iniziale per demo
-    └── run_reflection.py           # Trigger manuale del Reflection Agent
+    ├── seed_memories.py            # Seed initial memories for demo
+    └── run_reflection.py           # Manual trigger for Reflection Agent
 ```
 
 ---
 
-## Fasi di Sviluppo
+## Development Phases
 
-### Fase 1 — Fondamenta (Infrastruttura + Memory Layer)
+### Phase 1 — Foundations (Infrastructure + Memory Layer)
 
-**Obiettivo**: Stack funzionante con Mem0 configurato e testabile.
+**Goal**: Working stack with Mem0 configured and testable.
 
-#### 1.1 Setup del progetto
-- [ ] Creare `pyproject.toml` con dipendenze:
+#### 1.1 Project Setup
+- [ ] Create `pyproject.toml` with dependencies:
   - `google-adk`
   - `mem0ai`
   - `fastapi`, `uvicorn`
   - `pydantic-settings`
   - `apscheduler`
   - `pytest`, `pytest-asyncio`
-- [ ] Creare `.env.example` con tutte le variabili richieste
-- [ ] Creare `.gitignore` (Python, .env, __pycache__, .venv, ecc.)
-- [ ] Creare `Dockerfile` multi-stage (builder + runtime)
-- [ ] Creare `docker-compose.yml` con servizi:
+- [ ] Create `.env.example` with all required variables
+- [ ] Create `.gitignore` (Python, .env, __pycache__, .venv, etc.)
+- [ ] Create multi-stage `Dockerfile` (builder + runtime)
+- [ ] Create `docker-compose.yml` with services:
   - `qdrant` (vector store)
-  - `neo4j` (graph store, opzionale)
-  - `ollama` (LLM locale)
+  - `neo4j` (graph store, optional)
+  - `ollama` (local LLM)
   - `app` (digital brain)
 
-#### 1.2 Configurazione centralizzata
-- [ ] `config.py` con Pydantic `BaseSettings`:
+#### 1.2 Centralized Configuration
+- [ ] `config.py` with Pydantic `BaseSettings`:
   - LLM provider (ollama/gemini/openai) + model name
   - Mem0 config (vector store, graph store, embedder)
-  - Parametri di consolidamento (schedule, threshold, TTL)
+  - Consolidation parameters (schedule, threshold, TTL)
   - Scoping defaults (user_id, agent_id)
 
 #### 1.3 Memory Manager (Mem0 wrapper)
-- [ ] `memory/manager.py` — classe `MemoryManager`:
-  - `__init__`: inizializza Mem0 con config per Qdrant + Neo4j + Ollama embeddings
-  - `add(messages, user_id, metadata)`: wrapper su `memory.add()`
-  - `search(query, user_id, limit)`: wrapper su `memory.search()`
-  - `get_all(user_id)`: tutte le memorie di un utente
-  - `delete(memory_id)`: cancellazione singola memoria
-  - `get_recent(user_id, hours)`: memorie delle ultime N ore
+- [ ] `memory/manager.py` — `MemoryManager` class:
+  - `__init__`: initialize Mem0 with config for Qdrant + Neo4j + Ollama embeddings
+  - `add(messages, user_id, metadata)`: wrapper on `memory.add()`
+  - `search(query, user_id, limit)`: wrapper on `memory.search()`
+  - `get_all(user_id)`: all memories for a user
+  - `delete(memory_id)`: delete a single memory
+  - `get_recent(user_id, hours)`: memories from the last N hours
 - [ ] `memory/schemas.py` — Pydantic models:
   - `MemoryEntry`: id, content, user_id, created_at, metadata, score
-  - `MemorySearchResult`: lista di MemoryEntry con score
-- [ ] Test unitari con mock di Mem0
+  - `MemorySearchResult`: list of MemoryEntry with score
+- [ ] Unit tests with Mem0 mock
 
-#### 1.4 Memory Tools per ADK
-- [ ] `memory/tools.py` — funzioni da esporre come ADK FunctionTool:
+#### 1.4 Memory Tools for ADK
+- [ ] `memory/tools.py` — functions to expose as ADK FunctionTool:
   ```python
   def memory_store(content: str, user_id: str, metadata: dict = None) -> str:
-      """Salva un'informazione nella memoria a lungo termine."""
+      """Save information to long-term memory."""
 
   def memory_search(query: str, user_id: str, limit: int = 5) -> list[dict]:
-      """Cerca memorie rilevanti per la query."""
+      """Search for memories relevant to the query."""
 
   def memory_get_all(user_id: str) -> list[dict]:
-      """Recupera tutte le memorie di un utente."""
+      """Retrieve all memories for a user."""
   ```
 
-**Deliverable**: `docker compose up` avvia Qdrant + Ollama, i test passano.
+**Deliverable**: `docker compose up` starts Qdrant + Ollama, tests pass.
 
 ---
 
-### Fase 2 — Conversation Agent (Mnemonic Loop base)
+### Phase 2 — Conversation Agent (Base Mnemonic Loop)
 
-**Obiettivo**: Agente conversazionale con memoria persistente funzionante.
+**Goal**: Working conversational agent with persistent memory.
 
-#### 2.1 Conversation Agent con Google ADK
+#### 2.1 Conversation Agent with Google ADK
 - [ ] `agents/conversation.py` — `create_conversation_agent()`:
   ```python
   from google.adk.agents import LlmAgent
@@ -219,28 +219,28 @@ ai-digital-brain/
 
   conversation_agent = LlmAgent(
       name="conversation_agent",
-      model="gemini-2.0-flash",  # o ollama via LiteLLM
-      instruction="""Sei un assistente personale con memoria persistente.
-      Prima di rispondere, cerca sempre nella memoria informazioni rilevanti.
-      Dopo la conversazione, salva i fatti importanti nella memoria.""",
+      model="gemini-2.0-flash",  # or ollama via LiteLLM
+      instruction="""You are a personal assistant with persistent memory.
+      Before responding, always search memory for relevant information.
+      After the conversation, save important facts to memory.""",
       tools=[
           FunctionTool(memory_search),
           FunctionTool(memory_store),
       ],
   )
   ```
-- [ ] System prompt con istruzioni per:
-  - Cercare nella memoria **prima** di rispondere (retrieval)
-  - Estrarre fatti, preferenze, entità dalla conversazione (extraction)
-  - Salvare nella memoria i nuovi fatti (storage)
-- [ ] Gestione del `session_id` e `user_id` tramite ADK Session/State
+- [ ] System prompt with instructions for:
+  - Search memory **before** responding (retrieval)
+  - Extract facts, preferences, entities from conversation (extraction)
+  - Save new facts to memory (storage)
+- [ ] `session_id` and `user_id` management via ADK Session/State
 
-#### 2.2 API HTTP
-- [ ] `api/app.py` — FastAPI con endpoint:
-  - `POST /chat` — input: messaggio utente + user_id, output: risposta agente
-  - `GET /memories/{user_id}` — lista memorie
-  - `DELETE /memories/{memory_id}` — cancella memoria (right to be forgotten)
-- [ ] Integrazione con ADK Runner per esecuzione dell'agente:
+#### 2.2 HTTP API
+- [ ] `api/app.py` — FastAPI with endpoints:
+  - `POST /chat` — input: user message + user_id, output: agent response
+  - `GET /memories/{user_id}` — list memories
+  - `DELETE /memories/{memory_id}` — delete memory (right to be forgotten)
+- [ ] Integration with ADK Runner for agent execution:
   ```python
   from google.adk.runners import Runner
   from google.adk.sessions import InMemorySessionService
@@ -252,18 +252,18 @@ ai-digital-brain/
   )
   ```
 
-#### 2.3 Test end-to-end
-- [ ] Test: invia messaggio → agente risponde → memoria salvata
-- [ ] Test: invia secondo messaggio → agente recupera memoria precedente
-- [ ] Test: verifica che le memorie persistano tra sessioni diverse
+#### 2.3 End-to-end Tests
+- [ ] Test: send message → agent responds → memory saved
+- [ ] Test: send second message → agent retrieves previous memory
+- [ ] Test: verify memories persist across different sessions
 
-**Deliverable**: Chat funzionante che ricorda tra sessioni. `POST /chat` → risposta con contesto memorizzato.
+**Deliverable**: Working chat that remembers across sessions. `POST /chat` → response with memorized context.
 
 ---
 
-### Fase 3 — Reflection Agent ("Digital Sleep")
+### Phase 3 — Reflection Agent ("Digital Sleep")
 
-**Obiettivo**: Consolidamento automatico delle memorie.
+**Goal**: Automatic memory consolidation.
 
 #### 3.1 Reflection Agent
 - [ ] `agents/reflection.py` — `create_reflection_agent()`:
@@ -271,12 +271,12 @@ ai-digital-brain/
   reflection_agent = LlmAgent(
       name="reflection_agent",
       model="gemini-2.0-flash",
-      instruction="""Sei un agente di consolidamento della memoria.
-      Analizza le memorie recenti e:
-      1. Identifica pattern ricorrenti
-      2. Trova e risolvi contraddizioni
-      3. Sintetizza insight di alto livello
-      4. Marca come obsolete le memorie superate""",
+      instruction="""You are a memory consolidation agent.
+      Analyze recent memories and:
+      1. Identify recurring patterns
+      2. Find and resolve contradictions
+      3. Synthesize high-level insights
+      4. Mark outdated memories as obsolete""",
       tools=[
           FunctionTool(memory_get_all),
           FunctionTool(memory_search),
@@ -285,54 +285,54 @@ ai-digital-brain/
       ],
   )
   ```
-- [ ] Logica di consolidamento:
-  - **GATHER**: recupera memorie delle ultime 24h
-  - **ANALYZE**: LLM identifica pattern, conflitti, ridondanze
-  - **SYNTHESIZE**: crea memorie sintetiche di livello superiore (episodic → semantic)
-  - **PRUNE**: archivia/cancella memorie obsolete o duplicate
-- [ ] Metadata sulle memorie:
+- [ ] Consolidation logic:
+  - **GATHER**: retrieve memories from the last 24h
+  - **ANALYZE**: LLM identifies patterns, conflicts, redundancies
+  - **SYNTHESIZE**: create higher-level synthetic memories (episodic → semantic)
+  - **PRUNE**: archive/delete obsolete or duplicate memories
+- [ ] Memory metadata:
   - `memory_type`: `episodic` | `semantic` | `insight`
   - `confidence`: 0.0-1.0
-  - `source_count`: quante memorie episodiche supportano un insight
-  - `ttl`: time-to-live opzionale
+  - `source_count`: how many episodic memories support an insight
+  - `ttl`: optional time-to-live
 
 #### 3.2 Scheduling
-- [ ] `scheduler/jobs.py` — configurazione APScheduler:
+- [ ] `scheduler/jobs.py` — APScheduler configuration:
   ```python
   scheduler.add_job(
       run_reflection,
       trigger="cron",
-      hour=3,  # "digital sleep" alle 03:00
+      hour=3,  # "digital sleep" at 03:00
       minute=0,
   )
   ```
-- [ ] Endpoint manuale: `POST /reflect/{user_id}` per trigger on-demand
-- [ ] Logging dettagliato: quante memorie analizzate, consolidate, eliminate
+- [ ] Manual endpoint: `POST /reflect/{user_id}` for on-demand trigger
+- [ ] Detailed logging: how many memories analyzed, consolidated, deleted
 
-#### 3.3 Safeguard
-- [ ] Soglia minima di occorrenze prima di sintetizzare (evita false pattern)
-- [ ] Mantenere link tra memorie sintetiche e sorgenti episodiche
-- [ ] TTL sulle memorie consolidate con recency weighting
-- [ ] Test: verifica che memorie duplicate vengano fuse
-- [ ] Test: verifica che contraddizioni vengano risolte (newer wins)
+#### 3.3 Safeguards
+- [ ] Minimum occurrence threshold before synthesizing (avoid false patterns)
+- [ ] Maintain links between synthetic memories and episodic sources
+- [ ] TTL on consolidated memories with recency weighting
+- [ ] Test: verify duplicate memories get merged
+- [ ] Test: verify contradictions get resolved (newer wins)
 
-**Deliverable**: Reflection Agent eseguibile via cron o manualmente. Le memorie si consolidano.
+**Deliverable**: Reflection Agent runnable via cron or manually. Memories get consolidated.
 
 ---
 
-### Fase 4 — Predictive Engine (Active Inference)
+### Phase 4 — Predictive Engine (Active Inference)
 
-**Obiettivo**: Pre-caricamento proattivo delle memorie basato sul contesto.
+**Goal**: Proactive context-based memory pre-loading.
 
 #### 4.1 Context Signals
-- [ ] `tools/context_tool.py` — raccolta segnali:
+- [ ] `tools/context_tool.py` — signal collection:
   ```python
   def get_context_signals(user_id: str) -> dict:
-      """Restituisce segnali contestuali per la predizione."""
+      """Return contextual signals for prediction."""
       return {
           "time_of_day": "morning|afternoon|evening",
           "day_of_week": "monday|...|sunday",
-          "recent_topics": [...],         # ultimi topic delle sessioni recenti
+          "recent_topics": [...],         # recent session topics
           "session_count_today": 3,
           "last_session_gap_hours": 14.5,
       }
@@ -344,24 +344,24 @@ ai-digital-brain/
   predictive_agent = LlmAgent(
       name="predictive_agent",
       model="gemini-2.0-flash",
-      instruction="""Basandoti sui segnali di contesto e sulle memorie recenti,
-      prevedi quali informazioni l'utente probabilmente avrà bisogno.
-      Restituisci una lista di query di ricerca da pre-caricare.""",
+      instruction="""Based on context signals and recent memories,
+      predict what information the user will likely need.
+      Return a list of search queries to pre-load.""",
       tools=[
           FunctionTool(get_context_signals),
           FunctionTool(memory_search),
       ],
   )
   ```
-- [ ] Flusso di pre-loading:
-  1. Utente avvia sessione → raccogli context signals
-  2. Predictive Agent genera query predittive
-  3. Pre-fetch memorie rilevanti
-  4. Inietta come "background knowledge" nel contesto del Conversation Agent
-- [ ] Confidence threshold: pre-fetch solo se confidence > 0.7
+- [ ] Pre-loading flow:
+  1. User starts session → collect context signals
+  2. Predictive Agent generates predictive queries
+  3. Pre-fetch relevant memories
+  4. Inject as "background knowledge" into the Conversation Agent context
+- [ ] Confidence threshold: pre-fetch only if confidence > 0.7
 
-#### 4.3 Integrazione con Conversation Agent
-- [ ] `agents/orchestrator.py` — orchestrazione completa:
+#### 4.3 Integration with Conversation Agent
+- [ ] `agents/orchestrator.py` — full orchestration:
   ```python
   async def handle_session_start(user_id: str, session_id: str):
       # 1. Predictive pre-loading
@@ -371,83 +371,83 @@ ai-digital-brain/
       # 3. Inject into conversation context
       return create_augmented_session(preloaded)
   ```
-- [ ] Feedback loop: tracciare se le predizioni erano utili (l'utente ha effettivamente chiesto di quei topic?)
+- [ ] Feedback loop: track whether predictions were useful (did the user actually ask about those topics?)
 
-#### 4.4 Safeguard
-- [ ] Cache TTL sulle predizioni (invalidare su cambio topic)
-- [ ] Budget massimo di token per pre-loading
-- [ ] Non annunciare le predizioni all'utente (evitare "creepy factor")
-- [ ] Test: verifica che le predizioni siano pertinenti al contesto
+#### 4.4 Safeguards
+- [ ] Cache TTL on predictions (invalidate on topic change)
+- [ ] Maximum token budget for pre-loading
+- [ ] Do not announce predictions to the user (avoid "creepy factor")
+- [ ] Test: verify predictions are relevant to context
 
-**Deliverable**: L'agente anticipa le esigenze dell'utente, pre-caricando memorie rilevanti.
+**Deliverable**: The agent anticipates user needs by pre-loading relevant memories.
 
 ---
 
-### Fase 5 — Hardening e Produzione
+### Phase 5 — Hardening and Production
 
-**Obiettivo**: Sistema robusto, documentato e pronto per il rilascio open-source.
+**Goal**: Robust, documented system ready for open-source release.
 
-#### 5.1 Privacy e Sicurezza
-- [x] Endpoint `DELETE /memories/user/{user_id}` — "right to be forgotten" completo
-- [x] Scoping rigoroso: nessun leak di memorie tra utenti diversi
-  - Validazione `user_id` con regex (alfanumerico, 1-128 char)
-  - Rifiuto di path-traversal, injection e caratteri speciali
-  - Validazione a livello di Pydantic model e route
-- [x] Nessun log di contenuti sensibili (sanitizzare prima del logging)
-  - Modulo `logging_config.py` con pattern matching per API key (Google, OpenAI, GitHub), password, token
-  - Sanitizzazione automatica su JSONFormatter e SanitizedTextFormatter
-- [x] Rate limiting sugli endpoint API
-  - `RateLimitMiddleware` con sliding window per IP
-  - Configurabile via `RATE_LIMIT_ENABLED` e `RATE_LIMIT_REQUESTS_PER_MINUTE`
+#### 5.1 Privacy and Security
+- [x] `DELETE /memories/user/{user_id}` endpoint — complete "right to be forgotten"
+- [x] Strict scoping: no memory leaks between different users
+  - `user_id` validation with regex (alphanumeric, 1-128 chars)
+  - Rejection of path-traversal, injection, and special characters
+  - Validation at Pydantic model and route level
+- [x] No sensitive content logging (sanitize before logging)
+  - `logging_config.py` module with pattern matching for API keys (Google, OpenAI, GitHub), passwords, tokens
+  - Automatic sanitization on JSONFormatter and SanitizedTextFormatter
+- [x] Rate limiting on API endpoints
+  - `RateLimitMiddleware` with sliding window per IP
+  - Configurable via `RATE_LIMIT_ENABLED` and `RATE_LIMIT_REQUESTS_PER_MINUTE`
 
-#### 5.2 Osservabilità
-- [x] Logging strutturato (JSON) con correlation ID per sessione
-  - `CorrelationIDMiddleware` genera/propaga `X-Correlation-ID` su ogni request
-  - `JSONFormatter` emette log come JSON single-line con timestamp, level, correlation_id, extra fields
-  - `SanitizedTextFormatter` per modalità testo con redaction
-  - Configurabile via `LOG_LEVEL` e `LOG_FORMAT` (json/text)
-- [x] Metriche:
-  - `MetricsCollector` thread-safe con counters e timers
-  - Tracciamento: chat_requests, reflection_requests, memory ops, rate_limited
-  - Timer: chat_latency, reflection_latency, prediction_latency, conversation_latency, http_request
-  - HTTP status code counters (http_200, http_429, ecc.)
+#### 5.2 Observability
+- [x] Structured logging (JSON) with correlation ID per session
+  - `CorrelationIDMiddleware` generates/propagates `X-Correlation-ID` on every request
+  - `JSONFormatter` emits logs as single-line JSON with timestamp, level, correlation_id, extra fields
+  - `SanitizedTextFormatter` for text mode with redaction
+  - Configurable via `LOG_LEVEL` and `LOG_FORMAT` (json/text)
+- [x] Metrics:
+  - Thread-safe `MetricsCollector` with counters and timers
+  - Tracking: chat_requests, reflection_requests, memory ops, rate_limited
+  - Timers: chat_latency, reflection_latency, prediction_latency, conversation_latency, http_request
+  - HTTP status code counters (http_200, http_429, etc.)
 - [x] Health check endpoint: `/health`
-  - Verifica connettività Qdrant e Neo4j (se abilitato)
-  - Stato: "ok" o "degraded"
-  - Espone config attiva (provider, model) e snapshot metriche
+  - Verifies Qdrant and Neo4j connectivity (if enabled)
+  - Status: "ok" or "degraded"
+  - Exposes active config (provider, model) and metrics snapshot
 
-#### 5.3 Configurabilità
-- [x] Supporto multi-provider LLM (Ollama, Gemini, OpenAI) via config
-- [x] Parametri di tuning esposti come variabili d'ambiente:
+#### 5.3 Configurability
+- [x] Multi-provider LLM support (Ollama, Gemini, OpenAI) via config
+- [x] Tuning parameters exposed as environment variables:
   - `REFLECTION_SCHEDULE_HOUR`, `REFLECTION_SCHEDULE_MINUTE`
   - `PREDICTION_CONFIDENCE_THRESHOLD`
   - `MEMORY_TTL_DAYS`
   - `MAX_PRELOAD_TOKENS`
   - `LOG_LEVEL`, `LOG_FORMAT`
   - `RATE_LIMIT_ENABLED`, `RATE_LIMIT_REQUESTS_PER_MINUTE`
-- [x] Profili via Docker Compose: `local` (Ollama), `graph` (Neo4j)
+- [x] Docker Compose profiles: `local` (Ollama), `graph` (Neo4j)
 
-#### 5.4 Documentazione e Release
-- [x] README.md con:
-  - Quick start (4 comandi per partire)
-  - Diagramma architettura ASCII
-  - Tabella agenti con ruoli
-  - API reference completa con esempi request/response
-  - Tabelle configurazione per ogni sezione
-  - Istruzioni Docker e sviluppo
-- [x] Script `scripts/seed_memories.py` per demo
-- [x] CI con GitHub Actions (lint, test, coverage)
-- [ ] Tag v0.1.0 e release
+#### 5.4 Documentation and Release
+- [x] README.md with:
+  - Quick start (4 commands to get running)
+  - ASCII architecture diagram
+  - Agent table with roles
+  - Complete API reference with request/response examples
+  - Configuration tables for each section
+  - Docker and development instructions
+- [x] `scripts/seed_memories.py` script for demo
+- [x] CI with GitHub Actions (lint, test, coverage)
+- [ ] Tag v0.1.0 and release
 
-**Deliverable**: Repository open-source completo, forkabile, con documentazione.
+**Deliverable**: Complete, forkable open-source repository with documentation.
 
 ---
 
-### Fase 6 — Channel Architecture (Infrastruttura Multi-Canale)
+### Phase 6 — Channel Architecture (Multi-Channel Infrastructure)
 
-**Obiettivo**: Creare l'astrazione che permette al Digital Brain di comunicare su qualsiasi canale (Telegram e futuri) tramite un'interfaccia unificata.
+**Goal**: Create the abstraction that allows the Digital Brain to communicate on any channel (Telegram and future ones) through a unified interface.
 
-> *Pattern ispirato a OpenClaw: `ChannelPlugin` interface — l'unica astrazione che conta. Ogni dettaglio specifico del canale (formato messaggi, API, autenticazione, formato target) è incapsulato dietro un contratto comune. L'AI layer non sa e non deve sapere se un messaggio viene da Telegram o WhatsApp.*
+> *Pattern inspired by OpenClaw: `ChannelPlugin` interface — the only abstraction that matters. Every channel-specific detail (message format, API, authentication, target format) is encapsulated behind a common contract. The AI layer does not and should not know whether a message comes from Telegram or WhatsApp.*
 
 #### 6.1 Channel Plugin Interface (ABC)
 - [x] `channels/base.py` — Abstract Base Class `ChannelPlugin`:
@@ -461,25 +461,25 @@ ai-digital-brain/
   class MediaAttachment:
       type: str               # "image" | "audio" | "video" | "document" | "voice" | "sticker"
       mime_type: str           # "image/jpeg", "audio/ogg", "application/pdf", ...
-      file_id: str             # ID del file nel canale di origine (es. Telegram file_id)
+      file_id: str             # File ID in the source channel (e.g. Telegram file_id)
       file_size: int | None = None
       filename: str | None = None
-      duration_seconds: float | None = None   # Per audio/video
-      width: int | None = None                # Per immagini/video
-      height: int | None = None               # Per immagini/video
-      caption: str | None = None              # Caption opzionale del media
+      duration_seconds: float | None = None   # For audio/video
+      width: int | None = None                # For images/video
+      height: int | None = None               # For images/video
+      caption: str | None = None              # Optional media caption
 
   @dataclass
   class InboundMessage:
       channel: str            # "telegram" | future channels
-      chat_id: str            # ID univoco della chat
-      sender_id: str          # ID del mittente
-      sender_name: str        # Nome visualizzato
-      text: str               # Testo del messaggio (o caption se solo media)
-      media: list[MediaAttachment]  # Media allegati (immagini, audio, video, documenti)
+      chat_id: str            # Unique chat ID
+      sender_id: str          # Sender ID
+      sender_name: str        # Display name
+      text: str               # Message text (or caption if media only)
+      media: list[MediaAttachment]  # Attached media (images, audio, video, documents)
       reply_to_id: Optional[str] = None
       thread_id: Optional[str] = None
-      raw: dict = None        # Payload originale del canale
+      raw: dict = None        # Original channel payload
 
   @dataclass
   class OutboundResult:
@@ -497,11 +497,11 @@ ai-digital-brain/
 
       @abstractmethod
       async def start(self, abort_signal: asyncio.Event) -> None:
-          """Avvia ricezione messaggi (webhook, polling, WS)."""
+          """Start message reception (webhook, polling, WS)."""
 
       @abstractmethod
       async def stop(self) -> None:
-          """Shutdown graceful."""
+          """Graceful shutdown."""
 
       @abstractmethod
       async def send_text(self, to: str, text: str, **kwargs) -> OutboundResult: ...
@@ -517,7 +517,7 @@ ai-digital-brain/
   ```
 
 #### 6.2 Channel Registry
-- [x] `channels/registry.py` — Registro dei canali attivi:
+- [x] `channels/registry.py` — Active channels registry:
   ```python
   class ChannelRegistry:
       def register(self, plugin: ChannelPlugin) -> None: ...
@@ -528,237 +528,237 @@ ai-digital-brain/
       async def health_check_all(self) -> dict[str, dict]: ...
   ```
 
-#### 6.3 Inbound Pipeline (ispirata a OpenClaw)
-- [x] `channels/pipeline.py` — Pipeline di elaborazione messaggi in arrivo:
-  1. **Normalize**: converti evento raw del canale → `InboundMessage` standard
-  2. **Security check**: verifica pairing/allowlist
-  3. **Debounce**: coalizza messaggi rapidi consecutivi dallo stesso utente
-  4. **Resolve session**: mappa `(channel, chat_id)` → `(user_id, session_key)`
-  5. **Resolve media**: scarica file binari via canale → `bytes`, costruisci `types.Part` multimodali per ADK
-  6. **Dispatch to AI**: costruisci `types.Content(parts=[text_part, *media_parts])` e inoltra al Conversation Agent
-  7. **Send response**: risposta AI → canale di origine via `send_text()` o `send_media()`
+#### 6.3 Inbound Pipeline (inspired by OpenClaw)
+- [x] `channels/pipeline.py` — Inbound message processing pipeline:
+  1. **Normalize**: convert raw channel event → standard `InboundMessage`
+  2. **Security check**: verify pairing/allowlist
+  3. **Debounce**: coalesce rapid consecutive messages from the same user
+  4. **Resolve session**: map `(channel, chat_id)` → `(user_id, session_key)`
+  5. **Resolve media**: download binary files via channel → `bytes`, build multimodal `types.Part` for ADK
+  6. **Dispatch to AI**: build `types.Content(parts=[text_part, *media_parts])` and forward to Conversation Agent
+  7. **Send response**: AI response → source channel via `send_text()` or `send_media()`
 
 #### 6.3.1 Media Processing
-- [x] `channels/media.py` — Gestione media nel pipeline:
+- [x] `channels/media.py` — Media handling in pipeline:
   ```python
   class MediaProcessor:
-      """Scarica media dal canale e li converte in types.Part per Google ADK."""
+      """Download media from channel and convert to types.Part for Google ADK."""
 
       async def download(self, channel: ChannelPlugin, attachment: MediaAttachment) -> bytes:
-          """Scarica il file binario dal canale di origine."""
+          """Download binary file from the source channel."""
 
       def to_adk_part(self, data: bytes, mime_type: str) -> types.Part:
-          """Converte bytes + mime_type in un types.Part per Gemini multimodale."""
-          # Gemini accetta: image/*, audio/*, video/*, application/pdf
+          """Convert bytes + mime_type to a types.Part for multimodal Gemini."""
+          # Gemini accepts: image/*, audio/*, video/*, application/pdf
           return types.Part.from_bytes(data=data, mime_type=mime_type)
 
       async def process_attachments(
           self, channel: ChannelPlugin, attachments: list[MediaAttachment]
       ) -> list[types.Part]:
-          """Pipeline completa: download → validazione → conversione ADK Parts."""
+          """Full pipeline: download → validation → ADK Parts conversion."""
   ```
-- [x] Validazione: dimensione massima file (configurabile, default 20MB)
-- [x] MIME type allowlist (evita eseguibili, archivi malevoli)
-- [x] Tipi supportati dal LLM multimodale:
-  - **Immagini**: `image/jpeg`, `image/png`, `image/webp`, `image/gif` → passate direttamente a Gemini
-  - **Audio**: `audio/ogg`, `audio/mpeg`, `audio/wav` → passati a Gemini (supporto nativo)
-  - **Video**: `video/mp4`, `video/webm` → passati a Gemini (supporto nativo)
-  - **Documenti**: `application/pdf` → passato a Gemini; altri formati → estrazione testo se possibile
+- [x] Validation: maximum file size (configurable, default 20MB)
+- [x] MIME type allowlist (prevents executables, malicious archives)
+- [x] Types supported by the multimodal LLM:
+  - **Images**: `image/jpeg`, `image/png`, `image/webp`, `image/gif` → passed directly to Gemini
+  - **Audio**: `audio/ogg`, `audio/mpeg`, `audio/wav` → passed to Gemini (native support)
+  - **Video**: `video/mp4`, `video/webm` → passed to Gemini (native support)
+  - **Documents**: `application/pdf` → passed to Gemini; other formats → text extraction if possible
 
-#### 6.4 Inbound Debouncer (pattern da OpenClaw)
-- [x] `channels/debounce.py` — Coalizza messaggi rapidi:
+#### 6.4 Inbound Debouncer (pattern from OpenClaw)
+- [x] `channels/debounce.py` — Coalesce rapid messages:
   ```python
   class InboundDebouncer:
-      """Previene 5 risposte AI per 5 messaggi consecutivi rapidi.
-      Aspetta debounce_ms dopo l'ultimo messaggio, poi flasha tutto come uno."""
+      """Prevents 5 AI responses for 5 rapid consecutive messages.
+      Waits debounce_ms after the last message, then flushes all as one."""
 
       def __init__(self, debounce_ms: int = 1500, on_flush: Callable): ...
       async def enqueue(self, key: str, message: InboundMessage) -> None: ...
   ```
 
-#### 6.5 Security — DM Policy & Pairing (pattern da OpenClaw)
-- [x] `channels/security.py` — Controllo accesso:
+#### 6.5 Security — DM Policy & Pairing (pattern from OpenClaw)
+- [x] `channels/security.py` — Access control:
   ```python
   class DmPolicyEnforcer:
-      """Tre modalità: 'open' (tutti), 'pairing' (allowlist + approvazione), 'disabled'."""
+      """Three modes: 'open' (everyone), 'pairing' (allowlist + approval), 'disabled'."""
       def check_access(self, channel: str, sender_id: str) -> tuple[bool, str]: ...
       def approve(self, channel: str, sender_id: str) -> None: ...
   ```
 
 #### 6.6 Outbound Chunking
-- [x] `channels/chunking.py` — Spezza risposte lunghe:
-  - Mode `markdown`: split preservando code blocks, liste, heading (Telegram, limite 4096 char)
-  - Mode `text`: split greedy per lunghezza (per futuri canali senza supporto markdown)
+- [x] `channels/chunking.py` — Split long responses:
+  - Mode `markdown`: split preserving code blocks, lists, headings (Telegram, 4096 char limit)
+  - Mode `text`: greedy length-based split (for future channels without markdown support)
 
-#### 6.7 Configurazione Canali
-- [x] Estensione di `config.py` con sezione channels:
+#### 6.7 Channel Configuration
+- [x] Extension of `config.py` with channels section:
   ```python
   # Telegram
   TELEGRAM_ENABLED: bool = False
   TELEGRAM_BOT_TOKEN: str = ""
-  TELEGRAM_WEBHOOK_URL: str = ""    # Se vuoto → polling mode
+  TELEGRAM_WEBHOOK_URL: str = ""    # If empty → polling mode
   TELEGRAM_WEBHOOK_SECRET: str = ""
   TELEGRAM_DM_POLICY: str = "pairing"  # open | pairing | disabled
   TELEGRAM_ALLOW_FROM: list[str] = []
   TELEGRAM_DEBOUNCE_MS: int = 1500
 
   # Media processing
-  MEDIA_MAX_FILE_SIZE_MB: int = 20        # Dimensione massima file accettato
-  MEDIA_ALLOWED_TYPES: list[str] = [      # MIME types permessi
+  MEDIA_MAX_FILE_SIZE_MB: int = 20        # Maximum accepted file size
+  MEDIA_ALLOWED_TYPES: list[str] = [      # Allowed MIME types
       "image/*", "audio/*", "video/*", "application/pdf"
   ]
   ```
 
-#### 6.8 Test
-- [x] Test unitari per ChannelPlugin ABC
-- [x] Test per InboundDebouncer
-- [x] Test per DmPolicyEnforcer
-- [x] Test per text/markdown chunking
-- [x] Test per ChannelRegistry lifecycle
-- [x] Test per MediaProcessor (download, validazione MIME, conversione ADK Part)
-- [x] Test per rifiuto file troppo grandi / MIME type non permessi
+#### 6.8 Tests
+- [x] Unit tests for ChannelPlugin ABC
+- [x] Tests for InboundDebouncer
+- [x] Tests for DmPolicyEnforcer
+- [x] Tests for text/markdown chunking
+- [x] Tests for ChannelRegistry lifecycle
+- [x] Tests for MediaProcessor (download, MIME validation, ADK Part conversion)
+- [x] Tests for rejecting oversized files / disallowed MIME types
 
-**Deliverable**: Infrastruttura multi-canale completa e testata, con supporto media multimodale. Nessun canale concreto ancora, ma il framework è pronto per accoglierli.
+**Deliverable**: Complete and tested multi-channel infrastructure with multimodal media support. No concrete channels yet, but the framework is ready to accommodate them.
 
 ---
 
-### Fase 7 — Integrazione Telegram
+### Phase 7 — Telegram Integration
 
-**Obiettivo**: Bot Telegram funzionante che permette di chattare con il Digital Brain via Telegram.
+**Goal**: Working Telegram bot that allows chatting with the Digital Brain via Telegram.
 
-> *Libreria scelta: `python-telegram-bot` (matura, async-native, ottima documentazione). Alternativa: `aiogram` (più leggero, FastAPI-friendly). Decisione finale durante implementazione.*
+> *Chosen library: `python-telegram-bot` (mature, async-native, excellent documentation). Alternative: `aiogram` (lighter, FastAPI-friendly). Final decision during implementation.*
 
 #### 7.1 Telegram Plugin
 - [x] `channels/telegram/plugin.py` — `TelegramChannel(ChannelPlugin)`:
   - `channel_id()` → `"telegram"`
   - `capabilities()` → `{ chat_types: [direct, group], reactions: True, threads: True, media: True, commands: True }`
-  - `start()` → avvia webhook o polling in base alla config
-  - `send_text()` → invio messaggio via Bot API, con markdown parsing
-  - `send_media()` → invio foto/video/documenti
-  - `health_check()` → chiama `getMe()` e verifica connettività
+  - `start()` → start webhook or polling based on config
+  - `send_text()` → send message via Bot API, with markdown parsing
+  - `send_media()` → send photos/videos/documents
+  - `health_check()` → call `getMe()` and verify connectivity
 
 #### 7.2 Webhook Endpoint (FastAPI)
-- [x] `api/webhooks.py` — endpoint webhook:
+- [x] `api/webhooks.py` — webhook endpoint:
   ```python
   @router.post("/webhooks/telegram")
   async def telegram_webhook(request: Request):
-      """Riceve update da Telegram Bot API."""
-      # 1. Valida secret token (header X-Telegram-Bot-Api-Secret-Token)
-      # 2. Parsa Update
-      # 3. Normalizza → InboundMessage
-      # 4. Passa alla pipeline
+      """Receive updates from Telegram Bot API."""
+      # 1. Validate secret token (header X-Telegram-Bot-Api-Secret-Token)
+      # 2. Parse Update
+      # 3. Normalize → InboundMessage
+      # 4. Pass to pipeline
   ```
-- [x] Supporto polling mode (fallback per sviluppo locale senza tunnel)
+- [x] Polling mode support (fallback for local development without tunnel)
 
-#### 7.3 Inbound Handlers (pattern da OpenClaw)
+#### 7.3 Inbound Handlers (pattern from OpenClaw)
 - [x] `channels/telegram/handlers.py`:
-  - **Text messages**: normalizza, debounce, dispatch
-  - **Photo/Image**: estrai `file_id` dalla risoluzione più alta, costruisci `MediaAttachment(type="image")`
-  - **Audio/Voice**: estrai `file_id`, durata, MIME; voice notes → `type="voice"`, audio files → `type="audio"`
-  - **Video/Video note**: estrai `file_id`, durata, dimensioni; video note (circolari) → `type="video"`
-  - **Documenti**: estrai `file_id`, `file_name`, `mime_type`; supporta PDF, fogli, testo
-  - **Media group buffering**: quando l'utente invia un album (più foto/video insieme), Telegram li consegna come update separati con stesso `media_group_id`. Bufferare e flushare come singolo `InboundMessage` con `media: list[MediaAttachment]`
-  - **Caption handling**: se il media ha una caption, usarla come `text` del messaggio; se assente, `text = ""`
-  - **Text fragment reassembly**: riassembla messaggi lunghi splittati da Telegram (>4096 char)
-  - **Group messages**: mention gating — rispondi solo se il bot è menzionato (@botname)
-  - **Commands**: `/start` (benvenuto), `/help`, `/forget` (cancella memorie)
-  - **Sticker**: estrai `file_id` + emoji associato, costruisci `MediaAttachment(type="sticker")`
+  - **Text messages**: normalize, debounce, dispatch
+  - **Photo/Image**: extract `file_id` from highest resolution, build `MediaAttachment(type="image")`
+  - **Audio/Voice**: extract `file_id`, duration, MIME; voice notes → `type="voice"`, audio files → `type="audio"`
+  - **Video/Video note**: extract `file_id`, duration, dimensions; video notes (circular) → `type="video"`
+  - **Documents**: extract `file_id`, `file_name`, `mime_type`; supports PDF, spreadsheets, text
+  - **Media group buffering**: when user sends an album (multiple photos/videos together), Telegram delivers them as separate updates with the same `media_group_id`. Buffer and flush as a single `InboundMessage` with `media: list[MediaAttachment]`
+  - **Caption handling**: if media has a caption, use it as message `text`; if absent, `text = ""`
+  - **Text fragment reassembly**: reassemble long messages split by Telegram (>4096 chars)
+  - **Group messages**: mention gating — respond only if the bot is mentioned (@botname)
+  - **Commands**: `/start` (welcome), `/help`, `/forget` (delete memories)
+  - **Sticker**: extract `file_id` + associated emoji, build `MediaAttachment(type="sticker")`
 
-#### 7.4 Outbound — Invio Risposte
+#### 7.4 Outbound — Sending Responses
 - [x] `channels/telegram/send.py`:
-  - Markdown-aware chunking (preserva code blocks, liste)
-  - Limite: 4096 caratteri per messaggio
-  - Supporto `reply_to_message_id` per risposte contestuali
-  - Supporto forum topics (`message_thread_id`)
-  - Rate limiting (30 msg/sec globale, 1 msg/sec per chat, limiti Bot API)
+  - Markdown-aware chunking (preserves code blocks, lists)
+  - Limit: 4096 characters per message
+  - `reply_to_message_id` support for contextual replies
+  - Forum topics support (`message_thread_id`)
+  - Rate limiting (30 msg/sec global, 1 msg/sec per chat, Bot API limits)
 
-#### 7.5 Comandi Nativi Telegram
-- [x] `/start` — Messaggio di benvenuto + registrazione utente
-- [x] `/help` — Lista comandi disponibili
-- [x] `/forget` — Cancella tutte le memorie (right to be forgotten)
-- [x] `/memories` — Mostra un riepilogo delle memorie salvate
-- [x] `/reflect` — Trigger manuale del Reflection Agent
+#### 7.5 Native Telegram Commands
+- [x] `/start` — Welcome message + user registration
+- [x] `/help` — List available commands
+- [x] `/forget` — Delete all memories (right to be forgotten)
+- [x] `/memories` — Show a summary of saved memories
+- [x] `/reflect` — Manual trigger of the Reflection Agent
 
 #### 7.6 User ID Mapping
 - [x] `channels/telegram/mapping.py`:
-  - Mappa `telegram_user_id` → `digital_brain_user_id`
-  - Prima interazione: crea automaticamente il mapping
-  - Supporto per alias/nomi utente
+  - Map `telegram_user_id` → `digital_brain_user_id`
+  - First interaction: automatically create the mapping
+  - Username/alias support
 
-#### 7.7 Test
-- [x] Test webhook handler con mock Update
-- [x] Test invio messaggi con mock Bot API
-- [x] Test media group buffering (album multi-foto)
-- [x] Test ricezione singola immagine → MediaAttachment corretto
-- [x] Test ricezione audio/voice → MediaAttachment con durata
-- [x] Test ricezione documento (PDF) → MediaAttachment con filename e MIME
-- [x] Test ricezione video → MediaAttachment con dimensioni e durata
-- [x] Test caption handling (media con/senza caption)
-- [x] Test mention gating in gruppi
-- [x] Test comandi nativi
-- [ ] Test e2e: foto Telegram → AI descrive immagine → memoria salvata
-- [ ] Test e2e: voice note → AI interpreta audio → risposta testuale
+#### 7.7 Tests
+- [x] Test webhook handler with mock Update
+- [x] Test message sending with mock Bot API
+- [x] Test media group buffering (multi-photo album)
+- [x] Test single image reception → correct MediaAttachment
+- [x] Test audio/voice reception → MediaAttachment with duration
+- [x] Test document reception (PDF) → MediaAttachment with filename and MIME
+- [x] Test video reception → MediaAttachment with dimensions and duration
+- [x] Test caption handling (media with/without caption)
+- [x] Test mention gating in groups
+- [x] Test native commands
+- [ ] E2e test: Telegram photo → AI describes image → memory saved
+- [ ] E2e test: voice note → AI interprets audio → text response
 
-**Deliverable**: Bot Telegram funzionante con supporto multimodale. Testo, immagini, audio, video e documenti vengono tutti elaborati dall'AI. Testabile in locale con polling.
+**Deliverable**: Working Telegram bot with multimodal support. Text, images, audio, video, and documents are all processed by the AI. Testable locally with polling.
 
 ---
 
-### Fase 8 — Hardening & UX Telegram
+### Phase 8 — Hardening & Telegram UX
 
-**Obiettivo**: Monitoring, UX ottimizzata e proactive outreach su Telegram.
+**Goal**: Monitoring, optimized UX, and proactive outreach on Telegram.
 
-#### 8.1 Monitoring & Osservabilità
-- [ ] Metriche Telegram:
+#### 8.1 Monitoring & Observability
+- [ ] Telegram metrics:
   - `telegram_messages_in`, `telegram_messages_out`
   - `telegram_latency_ms`
   - `telegram_errors`
-- [ ] Health check esteso: `/health` include stato del canale Telegram
-- [ ] Dashboard status: endpoint JSON con stato real-time del bot
+- [ ] Extended health check: `/health` includes Telegram channel status
+- [ ] Status dashboard: JSON endpoint with real-time bot status
 
-#### 8.2 UX Ottimizzazioni per Telegram
-- [ ] **Typing indicator**: mostra "sta scrivendo..." mentre l'AI genera (`sendChatAction`)
-- [ ] **Risposte progressive**: edit-in-place del messaggio durante lo streaming LLM
-- [ ] **Risposte contestuali**: reply-to sul messaggio originale dell'utente
-- [ ] **Formattazione markdown**: sfruttare al massimo il supporto markdown di Telegram
-- [ ] **Gestione errori graceful**: se l'AI fallisce, invia messaggio di scusa all'utente
+#### 8.2 Telegram UX Optimizations
+- [ ] **Typing indicator**: show "typing..." while AI generates (`sendChatAction`)
+- [ ] **Progressive responses**: edit-in-place of message during LLM streaming
+- [ ] **Contextual replies**: reply-to on the user's original message
+- [ ] **Markdown formatting**: fully leverage Telegram's markdown support
+- [ ] **Graceful error handling**: if AI fails, send an apology message to the user
 
-#### 8.3 Proactive Outreach (Digital Brain → Utente)
-- [ ] Il Predictive Agent può decidere di contattare proattivamente l'utente:
-  - "Buongiorno! Oggi hai la riunione di progetto alle 10"
-  - "Ho notato che non facciamo il punto sulla dieta da 3 giorni"
-- [ ] Rispetta finestre temporali (non disturbare di notte)
-- [ ] Canale preferito configurabile (per ora solo Telegram)
+#### 8.3 Proactive Outreach (Digital Brain → User)
+- [ ] The Predictive Agent can decide to proactively contact the user:
+  - "Good morning! You have the project meeting today at 10"
+  - "I noticed we haven't checked in on the diet for 3 days"
+- [ ] Respect time windows (do not disturb at night)
+- [ ] Configurable preferred channel (Telegram only for now)
 
-#### 8.4 Test
-- [ ] Test: typing indicator funzionante
-- [ ] Test: risposte progressive (edit-in-place)
-- [ ] Test: proactive outreach con mock scheduler
-- [ ] Test e2e: messaggio Telegram → risposta con memoria → metriche aggiornate
+#### 8.4 Tests
+- [ ] Test: typing indicator works
+- [ ] Test: progressive responses (edit-in-place)
+- [ ] Test: proactive outreach with mock scheduler
+- [ ] E2e test: Telegram message → response with memory → metrics updated
 
-**Deliverable**: Bot Telegram con UX ottimizzata, monitoring completo e capacità proattive.
+**Deliverable**: Telegram bot with optimized UX, complete monitoring, and proactive capabilities.
 
 ---
 
-## Dipendenze Principali
+## Main Dependencies
 
-| Package | Versione | Scopo |
-|---------|----------|-------|
+| Package | Version | Purpose |
+|---------|---------|---------|
 | `google-adk` | latest | Agent framework |
 | `mem0ai` | latest | Memory layer |
-| `fastapi` | ^0.115 | API HTTP |
+| `fastapi` | ^0.115 | HTTP API |
 | `uvicorn` | ^0.34 | ASGI server |
-| `pydantic-settings` | ^2.0 | Configurazione |
+| `pydantic-settings` | ^2.0 | Configuration |
 | `apscheduler` | ^3.10 | Scheduling |
 | `qdrant-client` | latest | Vector store client |
-| `neo4j` | latest | Graph store client (opzionale) |
-| `litellm` | latest | Proxy LLM multi-provider (opzionale) |
-| `python-telegram-bot` | ^21.0 | Telegram Bot API (Fase 7) |
+| `neo4j` | latest | Graph store client (optional) |
+| `litellm` | latest | Multi-provider LLM proxy (optional) |
+| `python-telegram-bot` | ^21.0 | Telegram Bot API (Phase 7) |
 | `pytest` | ^8.0 | Testing |
-| `pytest-asyncio` | latest | Test async |
+| `pytest-asyncio` | latest | Async testing |
 
 ---
 
-## Docker Compose — Servizi
+## Docker Compose — Services
 
 ```yaml
 services:
@@ -772,13 +772,13 @@ services:
     ports: ["7474:7474", "7687:7687"]
     environment:
       NEO4J_AUTH: neo4j/password
-    profiles: ["graph"]  # opzionale
+    profiles: ["graph"]  # optional
 
   ollama:
     image: ollama/ollama:latest
     ports: ["11434:11434"]
     volumes: [ollama_data:/root/.ollama]
-    profiles: ["local"]  # solo per LLM locale
+    profiles: ["local"]  # local LLM only
 
   app:
     build: .
@@ -789,70 +789,70 @@ services:
 
 ---
 
-## Priorità e Ordine di Implementazione
+## Priority and Implementation Order
 
 ```
-Fase 1 (Fondamenta)        ████████████████████  Completata
-Fase 2 (Conversation)      ████████████████████  Completata
-Fase 3 (Reflection)        ████████████████████  Completata
-Fase 4 (Predictive)        ████████████████████  Completata
-Fase 5 (Hardening)         ███████████████████░  In corso (manca solo tag release)
-Fase 6 (Channel Arch.)     ████████████████████  Completata
-Fase 7 (Telegram)          ███████████████████░  Completata (mancano test e2e)
-Fase 8 (Telegram UX)       ░░░░░░░░░░░░░░░░░░░░  Da iniziare
+Phase 1 (Foundations)       ████████████████████  Completed
+Phase 2 (Conversation)     ████████████████████  Completed
+Phase 3 (Reflection)       ████████████████████  Completed
+Phase 4 (Predictive)       ████████████████████  Completed
+Phase 5 (Hardening)        ███████████████████░  In progress (only release tag remaining)
+Phase 6 (Channel Arch.)    ████████████████████  Completed
+Phase 7 (Telegram)         ███████████████████░  Completed (e2e tests remaining)
+Phase 8 (Telegram UX)      ░░░░░░░░░░░░░░░░░░░░  Not started
 ```
 
-Ogni fase produce un **deliverable testabile** indipendentemente dalle successive.
+Each phase produces a **testable deliverable** independently of subsequent ones.
 
 ---
 
-## Note di Design
+## Design Notes
 
-### Perch&eacute; Google ADK
-- `LlmAgent` supporta nativamente tools, system instruction, state management
-- `SequentialAgent` e `ParallelAgent` per orchestrare Reflection e Predictive
-- `InMemorySessionService` per sviluppo, sostituibile con persistence in produzione
-- Ecosistema Google (Gemini) come default, ma non vincolante
+### Why Google ADK
+- `LlmAgent` natively supports tools, system instruction, state management
+- `SequentialAgent` and `ParallelAgent` for orchestrating Reflection and Predictive
+- `InMemorySessionService` for development, replaceable with persistence in production
+- Google ecosystem (Gemini) as default, but not binding
 
-### Principi architetturali
-1. **Ogni componente è sostituibile**: Mem0, Qdrant, il provider LLM sono tutti swappabili
-2. **Zero dipendenze cloud obbligatorie**: tutto gira in locale con Docker + Ollama
-3. **Memory-first**: la memoria non è un add-on, è il cuore del sistema
-4. **Async by default**: tutte le operazioni I/O sono async
-5. **Test-driven**: ogni fase include test prima del deliverable
+### Architectural Principles
+1. **Every component is replaceable**: Mem0, Qdrant, the LLM provider are all swappable
+2. **Zero mandatory cloud dependencies**: everything runs locally with Docker + Ollama
+3. **Memory-first**: memory is not an add-on, it is the heart of the system
+4. **Async by default**: all I/O operations are async
+5. **Test-driven**: every phase includes tests before the deliverable
 
-### Perché Telegram (e non una CLI)
-- Il Digital Brain deve essere **raggiungibile dove l'utente già comunica**
-- Telegram ha un'API Bot ufficiale eccellente, gratuita, senza requisiti business
-- L'interfaccia conversazionale è **nativa** su Telegram — nessun onboarding
-- Il pattern `ChannelPlugin` (ispirato a OpenClaw) rende possibile aggiungere futuri canali (Discord, Slack, WhatsApp...) senza toccare il core
+### Why Telegram (and not a CLI)
+- The Digital Brain must be **reachable where the user already communicates**
+- Telegram has an excellent, free official Bot API with no business requirements
+- The conversational interface is **native** on Telegram — no onboarding needed
+- The `ChannelPlugin` pattern (inspired by OpenClaw) makes it possible to add future channels (Discord, Slack, WhatsApp...) without touching the core
 
-### Gestione media multimodale
-- Il Digital Brain elabora **tutti i tipi di input**: testo, immagini, audio, video, documenti
-- **Strategia**: i media vengono scaricati dal canale (es. Telegram `getFile`), convertiti in `types.Part` di Google ADK, e passati direttamente al modello multimodale (Gemini) insieme al testo
-- **Flusso**: `media ricevuto → download bytes → types.Part.from_bytes(data, mime_type) → Content(parts=[text, *media]) → Gemini`
-- **Memoria**: l'AI descrive/interpreta il media e salva la descrizione testuale in memoria (Mem0 resta text-only per gli embeddings). Esempio: utente invia foto di un piatto → AI risponde "Sembra pasta alla carbonara!" → salva in memoria "L'utente ha condiviso una foto di pasta alla carbonara"
-- **Requisito LLM**: è necessario un modello multimodale (Gemini Flash/Pro). Se il provider configurato non supporta media (es. Ollama con modello text-only), il sistema notifica l'utente che i media non sono supportati con quel provider
-- **Limiti**: dimensione massima file configurabile (default 20MB), MIME type allowlist per sicurezza
+### Multimodal Media Handling
+- The Digital Brain processes **all input types**: text, images, audio, video, documents
+- **Strategy**: media are downloaded from the channel (e.g. Telegram `getFile`), converted to Google ADK `types.Part`, and passed directly to the multimodal model (Gemini) along with text
+- **Flow**: `media received → download bytes → types.Part.from_bytes(data, mime_type) → Content(parts=[text, *media]) → Gemini`
+- **Memory**: the AI describes/interprets the media and saves the text description to memory (Mem0 remains text-only for embeddings). Example: user sends a photo of a dish → AI responds "Looks like pasta carbonara!" → saves to memory "The user shared a photo of pasta carbonara"
+- **LLM requirement**: a multimodal model is needed (Gemini Flash/Pro). If the configured provider doesn't support media (e.g. Ollama with a text-only model), the system notifies the user that media is not supported with that provider
+- **Limits**: configurable maximum file size (default 20MB), MIME type allowlist for security
 
-### Decisioni chiave per i canali
-1. **Telegram come canale primario**
-   - API Bot ufficiale, gratuita, senza prerequisiti commerciali
-   - Supporta: markdown, inline keyboards, comandi nativi, gruppi, forum topics, media
-   - Webhook e polling mode entrambi supportati
-   - WhatsApp rimandato: richiede account Business Meta, configurazione complessa, e la Cloud API ha limitazioni (template messages, finestre 24h)
-2. **`python-telegram-bot` (non grammY)**
-   - OpenClaw usa grammY (TypeScript). Equivalente Python: `python-telegram-bot` (PTB)
-   - PTB è la libreria più matura, async-native, con ottima documentazione
-   - Alternativa valutata: `aiogram` (più leggero, più FastAPI-friendly) — decisione finale durante Fase 7
-3. **Channel Plugin come ABC, non come PluginRuntime**
-   - OpenClaw usa dependency injection via singleton runtime — pattern Node/TypeScript
-   - In Python usiamo ABC + dependency injection via FastAPI — più idiomatico e testabile
-4. **Debouncing, media buffering, text fragment reassembly: pattern da OpenClaw**
-   - Pattern essenziali per UX reale su chat — senza debouncing, 5 messaggi rapidi → 5 risposte AI separate
-   - Riscrittura in Python asyncio, ma logica identica
+### Key Channel Decisions
+1. **Telegram as primary channel**
+   - Official Bot API, free, no commercial prerequisites
+   - Supports: markdown, inline keyboards, native commands, groups, forum topics, media
+   - Both webhook and polling modes supported
+   - WhatsApp deferred: requires Meta Business account, complex setup, and the Cloud API has limitations (template messages, 24h windows)
+2. **`python-telegram-bot` (not grammY)**
+   - OpenClaw uses grammY (TypeScript). Python equivalent: `python-telegram-bot` (PTB)
+   - PTB is the most mature library, async-native, with excellent documentation
+   - Alternative evaluated: `aiogram` (lighter, more FastAPI-friendly) — final decision during Phase 7
+3. **Channel Plugin as ABC, not PluginRuntime**
+   - OpenClaw uses dependency injection via singleton runtime — Node/TypeScript pattern
+   - In Python we use ABC + dependency injection via FastAPI — more idiomatic and testable
+4. **Debouncing, media buffering, text fragment reassembly: patterns from OpenClaw**
+   - Essential patterns for real chat UX — without debouncing, 5 rapid messages → 5 separate AI responses
+   - Rewritten in Python asyncio, but identical logic
 
 ---
 
-*Piano creato per il progetto Digital Brain — basato sulla serie "From Predictive Coding to Digital Brain" di Matteo Gazzurelli*
-*Fasi 6-8 ispirate all'analisi del repository OpenClaw (https://github.com/openclaw/openclaw)*
+*Plan created for the Digital Brain project — based on the series "From Predictive Coding to Digital Brain" by Matteo Gazzurelli*
+*Phases 6-8 inspired by the analysis of the OpenClaw repository (https://github.com/openclaw/openclaw)*

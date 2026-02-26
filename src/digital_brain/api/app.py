@@ -57,17 +57,17 @@ async def _handle_command(channel: Any, command: str, args: str, message: Any) -
         await send_text_message(
             bot,
             chat_id,
-            "Ciao! Sono il tuo Digital Brain. "
-            "Puoi parlarmi di qualsiasi cosa e ricorderò le nostre conversazioni.",
+            "Hi! I'm your Digital Brain. "
+            "You can talk to me about anything and I'll remember our conversations.",
         )
     elif command == "help":
         help_text = (
-            "**Comandi disponibili:**\n"
-            "/start — Avvia il bot\n"
-            "/help — Mostra questo messaggio\n"
-            "/memories — Mostra le tue memorie\n"
-            "/forget — Cancella tutte le memorie\n"
-            "/reflect — Avvia la riflessione sulle memorie"
+            "**Available commands:**\n"
+            "/start — Start the bot\n"
+            "/help — Show this message\n"
+            "/memories — Show your memories\n"
+            "/forget — Delete all memories\n"
+            "/reflect — Trigger memory reflection"
         )
         await send_text_message(bot, chat_id, help_text)
     elif command == "memories":
@@ -78,13 +78,13 @@ async def _handle_command(channel: Any, command: str, args: str, message: Any) -
         manager = MemoryManager()
         result = manager.get_all(user_id=brain_id)
         if result.results:
-            lines = [f"**Le tue memorie ({result.total}):**\n"]
+            lines = [f"**Your memories ({result.total}):**\n"]
             for mem in result.results[:20]:
                 text_val = mem.memory if hasattr(mem, "memory") else str(mem)
                 lines.append(f"• {text_val}")
             await send_text_message(bot, chat_id, "\n".join(lines))
         else:
-            await send_text_message(bot, chat_id, "Non hai ancora nessuna memoria.")
+            await send_text_message(bot, chat_id, "You don't have any memories yet.")
     elif command == "forget":
         from digital_brain.memory.manager import MemoryManager
 
@@ -92,17 +92,17 @@ async def _handle_command(channel: Any, command: str, args: str, message: Any) -
         brain_id = mapper.resolve(sender_id, message.sender_name)
         manager = MemoryManager()
         manager.delete_all(user_id=brain_id)
-        await send_text_message(bot, chat_id, "Tutte le tue memorie sono state cancellate.")
+        await send_text_message(bot, chat_id, "All your memories have been deleted.")
     elif command == "reflect":
         orchestrator = get_orchestrator()
         mapper = _get_user_mapper()
         brain_id = mapper.resolve(sender_id, message.sender_name)
-        await send_text_message(bot, chat_id, "Sto riflettendo sulle tue memorie…")
+        await send_text_message(bot, chat_id, "Reflecting on your memories...")
         summary = await orchestrator.reflect(user_id=brain_id)
         await send_text_message(bot, chat_id, summary)
     else:
         await send_text_message(
-            bot, chat_id, f"Comando sconosciuto: /{command}. Usa /help per la lista."
+            bot, chat_id, f"Unknown command: /{command}. Use /help for the list."
         )
 
 

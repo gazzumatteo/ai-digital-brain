@@ -43,11 +43,11 @@ class TestPlainChunking:
 
     def test_real_world_text(self):
         text = (
-            "Il Digital Brain è un progetto che implementa un'architettura cognitiva "
-            "per agenti AI con memoria persistente.\n\n"
-            "Si basa su tre agenti principali: Conversation, Reflection e Predictive.\n\n"
-            "Il Conversation Agent gestisce il dialogo con l'utente, "
-            "cercando nella memoria informazioni rilevanti prima di rispondere."
+            "The Digital Brain is a project that implements a cognitive architecture "
+            "for AI agents with persistent memory.\n\n"
+            "It is based on three main agents: Conversation, Reflection, and Predictive.\n\n"
+            "The Conversation Agent manages dialogue with the user, "
+            "searching memory for relevant information before responding."
         )
         chunks = chunk_text(text, limit=150, mode=ChunkMode.TEXT)
         assert len(chunks) >= 2
