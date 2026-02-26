@@ -12,43 +12,43 @@ Communicate with your Digital Brain via **Telegram** (text, images, audio, video
 
 ## Quick Start
 
-### Requisiti
+### Requirements
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) (package manager)
-- Docker e Docker Compose
-- Una chiave API Google (per Gemini) **oppure** Ollama installato in locale
+- Docker and Docker Compose
+- A Google API key (for Gemini) **or** Ollama installed locally
 
-### Installazione
+### Installation
 
 ```bash
-# 1. Clona il repository
+# 1. Clone the repository
 git clone https://github.com/gazzumatteo/ai-digital-brain.git
 cd ai-digital-brain
 
-# 2. Avvia l'infrastruttura (Qdrant vector store)
+# 2. Start the infrastructure (Qdrant vector store)
 docker compose up -d qdrant
 
-# 3. Installa le dipendenze
+# 3. Install dependencies
 uv sync --extra dev
 
-# 4. Configura le variabili d'ambiente
+# 4. Configure environment variables
 cp .env.example .env
-# Modifica .env con le tue API key (vedi sezione Configurazione)
+# Edit .env with your API keys (see Configuration section)
 
-# 5. Avvia il server
+# 5. Start the server
 uv run uvicorn digital_brain.api.app:app --reload
 ```
 
-L'API e disponibile su `http://localhost:8000`. Verifica lo stato con `GET /health`.
+The API is available at `http://localhost:8000`. Check status with `GET /health`.
 
-### Setup con Telegram Bot
+### Telegram Bot Setup
 
-Per usare il Digital Brain via Telegram:
+To use the Digital Brain via Telegram:
 
-1. **Crea un bot** su Telegram parlando con `@BotFather` — invia `/newbot` e copia il token.
+1. **Create a bot** on Telegram by talking to `@BotFather` — send `/newbot` and copy the token.
 
-2. **Configura il `.env`:**
+2. **Configure `.env`:**
 
 ```bash
 TELEGRAM_ENABLED=true
@@ -56,43 +56,43 @@ TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234...
 TELEGRAM_DM_POLICY=open
 ```
 
-3. **Avvia il server** (il bot si avvia in polling mode):
+3. **Start the server** (the bot starts in polling mode):
 
 ```bash
 uv run uvicorn digital_brain.api.app:app --reload
 ```
 
-Il bot risponde ai messaggi privati e, nei gruppi, solo quando viene menzionato con `@nomebot`.
+The bot responds to private messages and, in groups, only when mentioned with `@botname`.
 
-> **Nota sulla DM Policy:** Il default e `pairing`, che blocca silenziosamente tutti i messaggi da utenti non presenti in `TELEGRAM_ALLOW_FROM`. Per iniziare velocemente usa `open`. Per restringere l'accesso al solo tuo account, usa `pairing` con il tuo Telegram user ID (puoi trovarlo scrivendo a `@userinfobot` su Telegram):
+> **Note on DM Policy:** The default is `pairing`, which silently blocks all messages from users not listed in `TELEGRAM_ALLOW_FROM`. To get started quickly, use `open`. To restrict access to your account only, use `pairing` with your Telegram user ID (you can find it by messaging `@userinfobot` on Telegram):
 >
 > ```bash
 > TELEGRAM_DM_POLICY=pairing
 > TELEGRAM_ALLOW_FROM=["123456789"]
 > ```
 
-#### Comandi Telegram
+#### Telegram Commands
 
-| Comando | Descrizione |
+| Command | Description |
 |---------|-------------|
-| `/start` | Messaggio di benvenuto |
-| `/help` | Lista comandi disponibili |
-| `/memories` | Mostra le tue memorie salvate |
-| `/forget` | Cancella tutte le tue memorie |
-| `/reflect` | Avvia la riflessione sulle memorie |
+| `/start` | Welcome message |
+| `/help` | List available commands |
+| `/memories` | Show your saved memories |
+| `/forget` | Delete all your memories |
+| `/reflect` | Trigger memory reflection |
 
-#### Media supportati
+#### Supported Media
 
-Il bot elabora tutti i tipi di media grazie al modello multimodale (Gemini):
+The bot processes all media types using the multimodal model (Gemini):
 
-- **Immagini** (JPEG, PNG, WebP, GIF)
-- **Audio e note vocali** (OGG, MP3, WAV)
-- **Video e video note** (MP4, WebM)
-- **Documenti** (PDF)
+- **Images** (JPEG, PNG, WebP, GIF)
+- **Audio and voice notes** (OGG, MP3, WAV)
+- **Video and video notes** (MP4, WebM)
+- **Documents** (PDF)
 
-I media vengono scaricati, convertiti in `types.Part` di Google ADK e passati direttamente a Gemini. La descrizione generata dall'AI viene salvata come memoria testuale.
+Media files are downloaded, converted to Google ADK `types.Part` objects, and passed directly to Gemini. The AI-generated description is saved as a text memory.
 
-## Architettura
+## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -150,7 +150,7 @@ I media vengono scaricati, convertiti in `types.Part` di Google ADK e passati di
 | `POST` | `/reflect/{user_id}` | Trigger memory consolidation |
 | `DELETE` | `/memories/{memory_id}` | Delete a single memory |
 | `DELETE` | `/memories/user/{user_id}` | Delete all user memories (GDPR) |
-| `POST` | `/webhooks/telegram` | Webhook per Telegram Bot API |
+| `POST` | `/webhooks/telegram` | Webhook for Telegram Bot API |
 | `GET` | `/health` | Health check with component status and metrics |
 
 ### `POST /chat`
@@ -242,29 +242,29 @@ All settings are controlled via environment variables (or `.env` file). See `.en
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TELEGRAM_ENABLED` | `false` | Abilita il bot Telegram |
-| `TELEGRAM_BOT_TOKEN` | — | Token del bot da @BotFather |
-| `TELEGRAM_WEBHOOK_URL` | — | URL webhook (se vuoto, usa polling) |
-| `TELEGRAM_WEBHOOK_SECRET` | — | Secret per verificare le richieste webhook |
-| `TELEGRAM_DM_POLICY` | `pairing` | Policy accesso: `open`, `pairing`, `disabled` |
-| `TELEGRAM_ALLOW_FROM` | `[]` | Lista Telegram user ID pre-autorizzati |
-| `TELEGRAM_DEBOUNCE_MS` | `1500` | Millisecondi di attesa per coalizzare messaggi rapidi |
+| `TELEGRAM_ENABLED` | `false` | Enable the Telegram bot |
+| `TELEGRAM_BOT_TOKEN` | — | Bot token from @BotFather |
+| `TELEGRAM_WEBHOOK_URL` | — | Webhook URL (if empty, uses polling) |
+| `TELEGRAM_WEBHOOK_SECRET` | — | Secret to verify webhook requests |
+| `TELEGRAM_DM_POLICY` | `pairing` | Access policy: `open`, `pairing`, `disabled` |
+| `TELEGRAM_ALLOW_FROM` | `[]` | Pre-authorized Telegram user IDs |
+| `TELEGRAM_DEBOUNCE_MS` | `1500` | Milliseconds to wait before coalescing rapid messages |
 
 **DM Policy:**
-- `open` — Tutti possono interagire con il bot (consigliato per iniziare)
-- `pairing` — Solo gli utenti in `TELEGRAM_ALLOW_FROM` possono interagire. I messaggi da utenti sconosciuti vengono ignorati silenziosamente. Per trovare il tuo Telegram user ID, scrivi a `@userinfobot` su Telegram.
-- `disabled` — DM completamente disabilitati
+- `open` — Anyone can interact with the bot (recommended to get started)
+- `pairing` — Only users in `TELEGRAM_ALLOW_FROM` can interact. Messages from unknown users are silently ignored. To find your Telegram user ID, message `@userinfobot` on Telegram.
+- `disabled` — DMs completely disabled
 
-**Modalita di ricezione:**
-- **Polling** (default): il bot interroga periodicamente i server Telegram. Ideale per sviluppo locale, non richiede un URL pubblico.
-- **Webhook**: Telegram invia gli aggiornamenti a un URL pubblico. Richiede HTTPS e un dominio raggiungibile. Imposta `TELEGRAM_WEBHOOK_URL` e opzionalmente `TELEGRAM_WEBHOOK_SECRET`.
+**Receiving mode:**
+- **Polling** (default): the bot periodically polls Telegram servers. Ideal for local development, no public URL required.
+- **Webhook**: Telegram sends updates to a public URL. Requires HTTPS and a reachable domain. Set `TELEGRAM_WEBHOOK_URL` and optionally `TELEGRAM_WEBHOOK_SECRET`.
 
 ### Media
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MEDIA_MAX_FILE_SIZE_MB` | `20` | Dimensione massima file accettato (MB) |
-| `MEDIA_ALLOWED_TYPES` | `image/*, audio/*, video/*, application/pdf` | MIME types permessi (supporta wildcard) |
+| `MEDIA_MAX_FILE_SIZE_MB` | `20` | Maximum accepted file size (MB) |
+| `MEDIA_ALLOWED_TYPES` | `image/*, audio/*, video/*, application/pdf` | Allowed MIME types (supports wildcards) |
 
 ### Observability
 
@@ -278,44 +278,44 @@ All settings are controlled via environment variables (or `.env` file). See `.en
 ## Docker
 
 ```bash
-# Stack completo (Qdrant + app)
+# Full stack (Qdrant + app)
 docker compose up -d
 
-# Con Neo4j graph store
+# With Neo4j graph store
 docker compose --profile graph up -d
 
-# Con Ollama LLM locale
+# With local Ollama LLM
 docker compose --profile local up -d
 ```
 
-Per abilitare Telegram in Docker, aggiungi le variabili nel file `.env`:
+To enable Telegram in Docker, add the variables to your `.env` file:
 
 ```bash
 TELEGRAM_ENABLED=true
-TELEGRAM_BOT_TOKEN=il-tuo-token
+TELEGRAM_BOT_TOKEN=your-bot-token
 TELEGRAM_DM_POLICY=open
 ```
 
-In modalita webhook (produzione), imposta anche:
+In webhook mode (production), also set:
 
 ```bash
-TELEGRAM_WEBHOOK_URL=https://tuodominio.com/webhooks/telegram
-TELEGRAM_WEBHOOK_SECRET=un-secret-casuale
+TELEGRAM_WEBHOOK_URL=https://yourdomain.com/webhooks/telegram
+TELEGRAM_WEBHOOK_SECRET=a-random-secret
 ```
 
-## Sviluppo
+## Development
 
 ```bash
-# Installa le dipendenze di sviluppo
+# Install dev dependencies
 uv sync --extra dev
 
-# Avvia il server in modalita sviluppo
+# Start the server in development mode
 uv run uvicorn digital_brain.api.app:app --reload
 
-# Esegui i test
+# Run tests
 uv run pytest tests/ -v
 
-# Esegui i test con coverage
+# Run tests with coverage
 uv run pytest tests/ --cov=digital_brain --cov-report=term-missing
 
 # Lint
