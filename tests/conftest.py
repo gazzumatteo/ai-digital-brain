@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import fakeredis.aioredis
 import pytest
 
 from digital_brain.config import (
+    DistributedMemorySettings,
     EmbedderSettings,
     LLMSettings,
     LoggingSettings,
@@ -14,6 +16,7 @@ from digital_brain.config import (
     Neo4jSettings,
     QdrantSettings,
     RateLimitSettings,
+    RedisSettings,
     Settings,
 )
 from digital_brain.memory.manager import MemoryManager
@@ -30,6 +33,8 @@ def settings() -> Settings:
         memory=MemorySettings(ttl_days=0),
         logging=LoggingSettings(level="DEBUG", format="text"),
         rate_limit=RateLimitSettings(enabled=False),
+        redis=RedisSettings(),
+        distributed=DistributedMemorySettings(enabled=True),
     )
 
 
@@ -62,3 +67,9 @@ def mock_mem0():
 def memory_manager(mock_mem0, settings) -> MemoryManager:
     """Return a MemoryManager backed by a mocked Mem0."""
     return MemoryManager(settings=settings)
+
+
+@pytest.fixture()
+def fake_redis():
+    """Return a fake async Redis client for testing."""
+    return fakeredis.aioredis.FakeRedis(decode_responses=True)

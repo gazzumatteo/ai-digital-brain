@@ -146,6 +146,48 @@ class MediaSettings(BaseSettings):
     )
 
 
+class RedisSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_prefix="REDIS_", extra="ignore"
+    )
+
+    host: str = "localhost"
+    port: int = 6379
+    db: int = 0
+    password: str = ""
+
+
+class DistributedMemorySettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="DISTRIBUTED_",
+        extra="ignore",
+    )
+
+    enabled: bool = False
+    # Tier TTLs (seconds)
+    edge_ttl: int = 300
+    edge_max_ttl: int = 3600
+    working_ttl: int = 7200
+    working_max_ttl: int = 86400
+    # Importance thresholds
+    semantic_threshold: float = 0.7
+    working_threshold: float = 0.4
+    # Scorer weights
+    novelty_weight: float = 0.35
+    relevance_weight: float = 0.30
+    salience_weight: float = 0.20
+    recency_weight: float = 0.15
+    # Reinforcer
+    decay_rate: float = 0.05
+    prune_threshold: float = 0.2
+    max_spacing_interval: int = 720
+    # Scheduler
+    reinforcement_interval_hours: int = 1
+    consolidation_hour: int = 3
+
+
 class Settings(BaseSettings):
     """Root settings aggregating all sub-configurations."""
 
@@ -167,6 +209,8 @@ class Settings(BaseSettings):
     api: APISettings = Field(default_factory=APISettings)
     telegram: TelegramSettings = Field(default_factory=TelegramSettings)
     media: MediaSettings = Field(default_factory=MediaSettings)
+    redis: RedisSettings = Field(default_factory=RedisSettings)
+    distributed: DistributedMemorySettings = Field(default_factory=DistributedMemorySettings)
 
     @model_validator(mode="after")
     def _resolve_embedder_auto(self) -> Settings:

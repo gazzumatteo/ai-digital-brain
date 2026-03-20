@@ -33,3 +33,4 @@ docker-compose.override.yml
 ollama_data/
 qdrant_data/
 neo4j_data/
+CLAUDE.md

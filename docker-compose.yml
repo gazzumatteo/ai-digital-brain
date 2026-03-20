@@ -31,6 +31,15 @@ services:
       - local
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
   app:
     build: .
     ports:
@@ -38,9 +47,22 @@ services:
     env_file: .env
     depends_on:
       - qdrant
+      - redis
+    restart: unless-stopped
+
+  scheduler:
+    build: .
+    command: uv run python -m digital_brain.scheduler.cron_jobs
+    env_file: .env
+    depends_on:
+      - qdrant
+      - redis
+    profiles:
+      - distributed
     restart: unless-stopped
 
 volumes:
   qdrant_data:
   neo4j_data:
   ollama_data:
+  redis_data:

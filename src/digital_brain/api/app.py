@@ -230,6 +230,44 @@ async def _teardown_telegram() -> None:
     _abort_signal = None
 
 
+_mesh: Any = None
+
+
+async def _setup_mesh() -> None:
+    """Initialize the distributed memory mesh if enabled."""
+    global _mesh
+    settings = get_settings()
+    if not settings.distributed.enabled:
+        logger.info("Distributed memory mesh disabled")
+        return
+
+    from digital_brain.memory.tools import set_mesh
+    from digital_brain.mesh.distributed_mesh import DistributedMemoryMesh
+
+    _mesh = DistributedMemoryMesh(settings=settings)
+    await _mesh.connect()
+
+    # Register the three agents
+    _mesh.register_agent("conversation_agent", "conversation")
+    _mesh.register_agent("reflection_agent", "reflection")
+    _mesh.register_agent("predictive_agent", "predictive")
+
+    # Inject into tools layer
+    set_mesh(_mesh)
+    logger.info("Distributed memory mesh started with 3 agents")
+
+
+async def _teardown_mesh() -> None:
+    """Shutdown the distributed memory mesh."""
+    global _mesh
+    if _mesh is not None:
+        from digital_brain.memory.tools import set_mesh
+
+        set_mesh(None)
+        await _mesh.close()
+        _mesh = None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     import os
@@ -245,6 +283,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Digital Brain v0.1.0 starting up…")
     orchestrator = get_orchestrator()
 
+    # Start distributed memory mesh if enabled
+    await _setup_mesh()
+
     # Start Telegram if enabled
     await _setup_telegram(orchestrator)
 
@@ -252,6 +293,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     # Shutdown Telegram
     await _teardown_telegram()
+    # Shutdown mesh
+    await _teardown_mesh()
     logger.info("Digital Brain shutting down…")
 
 
@@ -292,6 +335,27 @@ async def health() -> dict:
         components["qdrant"] = "healthy"
     except Exception:
         components["qdrant"] = "unreachable"
+
+    # Redis (always-on for distributed mesh)
+    try:
+        import redis
+
+        r = redis.Redis(
+            host=settings.redis.host,
+            port=settings.redis.port,
+            db=settings.redis.db,
+            password=settings.redis.password or None,
+            socket_timeout=3,
+        )
+        r.ping()
+        components["redis"] = "healthy"
+        r.close()
+    except Exception:
+        components["redis"] = "unreachable"
+
+    # Distributed mesh status
+    if settings.distributed.enabled:
+        components["distributed_mesh"] = "healthy" if _mesh is not None else "inactive"
 
     # Neo4j (only if enabled)
     if settings.neo4j.enabled:

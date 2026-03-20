@@ -6,8 +6,15 @@ from digital_brain.config import MediaSettings, Settings, TelegramSettings
 
 
 class TestTelegramSettings:
-    def test_defaults(self):
-        s = TelegramSettings()
+    def test_defaults(self, monkeypatch):
+        monkeypatch.delenv("TELEGRAM_ENABLED", raising=False)
+        monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+        monkeypatch.delenv("TELEGRAM_WEBHOOK_URL", raising=False)
+        monkeypatch.delenv("TELEGRAM_WEBHOOK_SECRET", raising=False)
+        monkeypatch.delenv("TELEGRAM_DM_POLICY", raising=False)
+        monkeypatch.delenv("TELEGRAM_ALLOW_FROM", raising=False)
+        monkeypatch.delenv("TELEGRAM_DEBOUNCE_MS", raising=False)
+        s = TelegramSettings(_env_file=None)
         assert s.enabled is False
         assert s.bot_token == ""
         assert s.webhook_url == ""
@@ -40,8 +47,15 @@ class TestMediaSettings:
 
 
 class TestSettingsIntegration:
-    def test_settings_includes_telegram(self):
-        s = Settings()
+    def test_settings_includes_telegram(self, monkeypatch):
+        monkeypatch.delenv("TELEGRAM_ENABLED", raising=False)
+        monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+        monkeypatch.delenv("TELEGRAM_WEBHOOK_URL", raising=False)
+        monkeypatch.delenv("TELEGRAM_WEBHOOK_SECRET", raising=False)
+        monkeypatch.delenv("TELEGRAM_DM_POLICY", raising=False)
+        monkeypatch.delenv("TELEGRAM_ALLOW_FROM", raising=False)
+        monkeypatch.delenv("TELEGRAM_DEBOUNCE_MS", raising=False)
+        s = Settings(telegram=TelegramSettings(_env_file=None))
         assert isinstance(s.telegram, TelegramSettings)
         assert s.telegram.enabled is False
 

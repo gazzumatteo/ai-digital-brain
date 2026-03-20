@@ -133,6 +133,43 @@ Media files are downloaded, converted to Google ADK `types.Part` objects, and pa
 └──────────────────────────────────────────────────────────────┘
 ```
 
+### Distributed Memory Mesh (Part 5)
+
+An optional layer that evolves the centralized memory into a biologically-inspired distributed mesh. Enable with `DISTRIBUTED_ENABLED=true`.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   DISTRIBUTED MEMORY MESH                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐   ┌──────────────────┐                    │
+│  │ ImportanceScorer │   │ MemoryReinforcer │                    │
+│  │ (sharp-wave      │   │ (spaced          │                    │
+│  │  ripples)        │   │  repetition)     │                    │
+│  └────────┬─────────┘   └────────┬─────────┘                    │
+│           │                      │                              │
+│  ┌────────▼──────────────────────▼─────────┐                    │
+│  │         DistributedMemoryMesh           │                    │
+│  │              (facade)                   │                    │
+│  └────────┬──────────────────────┬─────────┘                    │
+│           │                      │                              │
+│  ┌────────▼─────────┐   ┌───────▼──────────┐                   │
+│  │ LocalAgentMemory │   │ Checkpoint       │                   │
+│  │ (enteric nervous │   │ Manager          │                   │
+│  │  system)         │   │ (muscle memory)  │                   │
+│  └──────────────────┘   └──────────────────┘                   │
+│                                                                 │
+│  Storage tiers: Edge (5m) → Working (2h) → Semantic (permanent) │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Pattern | Biological Inspiration | Purpose |
+|---------|----------------------|---------|
+| **ImportanceScorer** | Hippocampal sharp-wave ripples | Score events by novelty, relevance, salience, recency |
+| **LocalAgentMemory** | Enteric nervous system | Per-agent Redis-backed memory with escalation |
+| **MemoryReinforcer** | Kukushkin's cellular memory | Spaced repetition, decay, and pruning |
+| **AgentCheckpointManager** | Muscle epigenetic memory | Save/restore agent state across domains |
+
 ### Three Agents, One Brain
 
 | Agent | Role | Schedule |
@@ -278,8 +315,11 @@ All settings are controlled via environment variables (or `.env` file). See `.en
 ## Docker
 
 ```bash
-# Full stack (Qdrant + app)
+# Full stack (Qdrant + Redis + app)
 docker compose up -d
+
+# With distributed memory mesh (adds scheduler)
+docker compose --profile distributed up -d
 
 # With Neo4j graph store
 docker compose --profile graph up -d
@@ -341,12 +381,13 @@ uv run python scripts/run_reflection.py
 | Memory Layer | Mem0 |
 | Vector Store | Qdrant |
 | Graph Store | Neo4j (optional) |
+| Edge/Working Cache | Redis 7 |
 | LLM | Gemini / Ollama / OpenAI |
 | Messaging | Telegram Bot API (python-telegram-bot) |
 | API | FastAPI + Uvicorn |
 | Scheduling | APScheduler |
 | Infrastructure | Docker Compose |
-| Testing | pytest + asyncio |
+| Testing | pytest + asyncio + fakeredis |
 | Linting | ruff |
 | Package Manager | uv |
 
